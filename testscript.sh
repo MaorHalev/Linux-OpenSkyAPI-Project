@@ -1,11 +1,17 @@
 #!/bin/bash
+
+rm -r flightsDB 2>/dev/null
+mkdir -p flightsDB
+cd flightsDB
 now=$(date +%s)
 yesterday=$(date --date="yesterday" +"%s")
-curl -u "Halevi:0121596" -s "https://opensky-network.org/api/flights/departure?airport=$1&begin=$yesterday&end=$now" > dpts
-sed -i 's/[{}]/\n/g' dpts   #delete {}
-sed -i 's/\[//g' dpts       #delete [
-sed -i 's/\]//g' dpts       #delete ]
-sed -i 's/^[ \t,]*//' dpts  #delete line starts with , \t
-awk -F',;' '{ for (i=2;i<=NF;i+=2) print $i }' dpts
-
-sed -i '/^$/d' dpts         #delete empty lines
+curl -u "Halevi:0121596" -s "https://opensky-network.org/api/flights/departure?airport=$1&begin=$yesterday&end=$now" > dptsTmp
+sed -i 's/,/\n/g' dptsTmp 
+awk -F: '{print $2 }' dptsTmp > "$1.dpt" 
+sed -i -z 's/\n/,/g' "$1.dpt" 
+sed -i 's/}/\n/g' "$1.dpt" 
+sed -i 's/"//g' "$1.dpt" 
+sed -i 's/[ \t]//' "$1.dpt" 
+sed -i '$ d' "$1.dpt" 
+sed -i 's/^[,]//g' "$1.dpt" 
+rm dptsTmp
