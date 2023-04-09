@@ -22,8 +22,10 @@ public:
         this->callSing = getColomFromFlight(flightStr, "callSing");
         this->depTime = stoi(getColomFromFlight(flightStr, "depTime"));
         this->arrivalTime = stoi(getColomFromFlight(flightStr, "arrivalTime"));
+        this->arriveFrom = getColomFromFlight(flightStr, "arriveFrom");
+        this->departureTo = getColomFromFlight(flightStr, "departureTo");
     }
-    string flightStr;
+    string flightStr, arriveFrom, departureTo;
     string icao24, callSing;
     int depTime, arrivalTime;
 };
@@ -112,28 +114,40 @@ airport* getAirport(DB& db, string airportName)
 string getColomFromFlight(string& flight, const char* colom)
 {
     size_t colon_pos_1, colon_pos_2;
-    if(colom == "arrivalTime")
+    if (colom == "icao24")
     {
-        colon_pos_1 = flight.find(",",3);
-        colon_pos_2 = flight.find(",",4);
+        colon_pos_1 = 0;
+        colon_pos_2 = flight.find(',',1);    // index not occurence.
+    }
+    else if(colom == "arrivalTime")
+    {
+        colon_pos_1 = flight.find(',',3);
+        colon_pos_2 = flight.find(',',4);
     }
     else if (colom == "depTime")
     {
-        colon_pos_1 = flight.find(",",1);
-        colon_pos_2 = flight.find(",",2);
-    }
-    else if (colom == "icao24")
-    {
-        colon_pos_1 = 0;
-        colon_pos_2 = flight.find(",",1);
+        colon_pos_1 = flight.find(',',1);
+        colon_pos_2 = flight.find(',',2);
     }
     else if (colom == "callSing")
     {
-        colon_pos_1 = flight.find(",",5);
-        colon_pos_2 = flight.find(",",6);
+        colon_pos_1 = flight.find(',',5);
+        colon_pos_2 = flight.find(',',6);
     }
+    else if (colom == "arriveFrom")
+    {
+        colon_pos_1 = flight.find(',',2);
+        colon_pos_2 = flight.find(',',3);
+    }
+    else if (colom == "departureTo")
+    {
+        colon_pos_1 = flight.find(',',4);
+        colon_pos_2 = flight.find(',',5);
+    }
+    if(colon_pos_1 == 0)
+        return flight.substr(colon_pos_1, colon_pos_2-colon_pos_1-1); // Parse the column from the SVC row string
+    return flight.substr(colon_pos_1+1, colon_pos_2-colon_pos_1-1);
 
-    return flight.substr(colon_pos_1+1, colon_pos_2-colon_pos_1-1); // Parse the column from the SVC row string
 }
 
 

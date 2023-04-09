@@ -37,24 +37,27 @@ void printFlightsByTime(DB& DB,char* airport_name)
     auto it2 = airport->depFlights.begin();
 
     // Print the two vectors in ascending order
-    while (it1 != airport->arrFlights.end() && it2 != airport->depFlights.end()) {
-        if (it1->arrivalTime <= it2->depTime) {
-            std::cout << it1->arrivalTime << " ";
+    while (it1 != airport->arrFlights.end() && it2 != airport->depFlights.end()) 
+    {
+        if (it1->arrivalTime <= it2->depTime) 
+        {
+            cout << "flight #" << it1->icao24 << " arriving from " << it1->arriveFrom << ", at " << it1->arrivalTime << endl;
             ++it1;
         }
-        else {
-            std::cout << it2->depTime << " ";
+        else 
+        {
+            cout << "flight #" << it2->icao24 << " departing to " << it2->departureTo << ", at " << it2->depTime <<endl;
             ++it2;
         }
     }
     while (it1 != airport->arrFlights.end()) 
     {
-        cout << it1->flightStr;
+        cout << "flight #" << it1->icao24 << " arriving from " << it1->arriveFrom << ", at " << it1->arrivalTime << endl;
         ++it1;
     }
     while (it2 != airport->depFlights.end()) 
     {
-        cout << it2->flightStr;
+        cout << "flight #" << it2->icao24 << " departing to " << it2->departureTo << ", at " << it2->depTime  <<endl;
         ++it2;
     }
 

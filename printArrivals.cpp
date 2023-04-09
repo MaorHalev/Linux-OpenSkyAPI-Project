@@ -22,6 +22,7 @@ void printArrivals(DB& DB,char* airport_name)
 
     for(int i = 0; i < airport->arrFlights.size(); i++)
     {
-        cout << airport->arrFlights[i].flightStr;
+        cout << "flight #" << airport->arrFlights[i].icao24 << " arriving from " << airport->arrFlights[i].arriveFrom <<
+         ", tookoff at " << airport->arrFlights[i].depTime << " landed at" << airport->arrFlights[i].arrivalTime <<endl;
     }
 }
