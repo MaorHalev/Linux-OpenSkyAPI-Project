@@ -1,6 +1,6 @@
 #include "utility.cpp"
 
-void printFlightsByTime(DB& DB,char* airport_name);
+void printFlightsByTime(DB& DB,const string airport_name);
 bool compareArrivals(const flight& a, const flight& b) ;
 bool compareDepartures(const flight& a, const flight& b) ;
 
@@ -9,18 +9,24 @@ int main (int argc, char* argv[])
     DB DB;
     LoadDB(DB);
 
-    for(int i = 1; i < 2; i++)
+    for(int i = 1; i < argc; i++)
     {
-        printFlightsByTime(DB,"LLBG");
+        printFlightsByTime(DB,argv[i]);
     }
 
     return 0;
 }
 
-void printFlightsByTime(DB& DB,char* airport_name)
+void printFlightsByTime(DB& DB,const string airport_name)
 {
     string airportName(airport_name);
     airport* airport = getAirport(DB,airportName);
+
+    if(airport == NULL)
+    {
+        throw invalid_argument("No such airport in database");
+    }
+
     int i = 0;
 
     vector<string> flights;
@@ -36,28 +42,28 @@ void printFlightsByTime(DB& DB,char* airport_name)
     auto it1 = airport->arrFlights.begin();
     auto it2 = airport->depFlights.begin();
 
-    // Print the two vectors in ascending order
+    // Print the two vectors in ascending order of time to relevant airport
     while (it1 != airport->arrFlights.end() && it2 != airport->depFlights.end()) 
     {
-        if (it1->arrivalTime <= it2->depTime) 
+        if (it1->arrivalTimeEpoch <= it2->depTimeEpoch) 
         {
-            cout << "flight #" << it1->icao24 << " arriving from " << it1->arriveFrom << ", at " << it1->arrivalTime << endl;
+            cout << "flight #" << it1->icao24 << " arriving from " << it1->arriveFrom << ", at " << it1->formatedArrivalTime << endl;
             ++it1;
         }
         else 
         {
-            cout << "flight #" << it2->icao24 << " departing to " << it2->departureTo << ", at " << it2->depTime <<endl;
+            cout << "flight #" << it2->icao24 << " departing to " << it2->departureTo << ", at " << it2->formatedDepTime <<endl;
             ++it2;
         }
     }
     while (it1 != airport->arrFlights.end()) 
     {
-        cout << "flight #" << it1->icao24 << " arriving from " << it1->arriveFrom << ", at " << it1->arrivalTime << endl;
+        cout << "flight #" << it1->icao24 << " arriving from " << it1->arriveFrom << ", at " << it1->formatedArrivalTime << endl;
         ++it1;
     }
     while (it2 != airport->depFlights.end()) 
     {
-        cout << "flight #" << it2->icao24 << " departing to " << it2->departureTo << ", at " << it2->depTime  <<endl;
+        cout << "flight #" << it2->icao24 << " departing to " << it2->departureTo << ", at " << it2->formatedDepTime  <<endl;
         ++it2;
     }
 
@@ -65,10 +71,10 @@ void printFlightsByTime(DB& DB,char* airport_name)
 
 bool compareArrivals(const flight& a, const flight& b) 
 {
-    return a.arrivalTime < b.arrivalTime;
+    return a.arrivalTimeEpoch < b.arrivalTimeEpoch;
 }
 
 bool compareDepartures(const flight& a, const flight& b) 
 {
-    return a.depTime < b.depTime;
+    return a.depTimeEpoch < b.depTimeEpoch;
 }

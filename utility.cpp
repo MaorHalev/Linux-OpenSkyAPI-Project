@@ -3,6 +3,7 @@
 
 using namespace std;
 #include <iostream>
+#include <ctime>
 #include <filesystem>
 #include <string>
 #include <list>
@@ -10,27 +11,35 @@ using namespace std;
 #include <vector>
 #include <algorithm>
 
-string getColomFromFlight(string& flight, const char* colom);
-
+vector<string> splitFlightCsvStr(const string &flightStr);
 class flight
 {
 public:
-    flight(string& flightStr)
+    flight(string &flightStr)
     {
+        vector<string> flightParts = splitFlightCsvStr(flightStr);
         this->flightStr = flightStr;
-        this->icao24 = getColomFromFlight(flightStr, "icao24");
-        this->callSing = getColomFromFlight(flightStr, "callSing");
-        this->depTime = stoi(getColomFromFlight(flightStr, "depTime"));
-        this->arrivalTime = stoi(getColomFromFlight(flightStr, "arrivalTime"));
-        this->arriveFrom = getColomFromFlight(flightStr, "arriveFrom");
-        this->departureTo = getColomFromFlight(flightStr, "departureTo");
+        this->icao24 = flightParts[0];
+        this->callSing = flightParts[5];
+        this->depTimeEpoch = stoi(flightParts[1]);
+        this->arrivalTimeEpoch = stoi(flightParts[3]);
+        this->arriveFrom = flightParts[2];
+        this->departureTo = flightParts[4];
+
+        time_t epoch = arrivalTimeEpoch;
+        struct tm* timeinfo = localtime(&epoch);
+        strftime(formatedArrivalTime, 80,"%c", timeinfo);
+        epoch = depTimeEpoch;
+        timeinfo = localtime(&epoch);
+        strftime(formatedDepTime, 80,"%c", timeinfo);
     }
     string flightStr, arriveFrom, departureTo;
     string icao24, callSing;
-    int depTime, arrivalTime;
+    char formatedArrivalTime[80],formatedDepTime[80];
+    int depTimeEpoch, arrivalTimeEpoch;
 };
 
-class airport 
+class airport
 {
 public:
     airport(string airportName)
@@ -41,19 +50,19 @@ public:
     {
         string line;
         ifstream infile(path);
-        if (infile) 
+        if (infile)
         {
-            getline(infile, line);   //skip first line - description.
-            if(isArrivals)
+            getline(infile, line); // skip first line - description.
+            if (isArrivals)
             {
-                while(getline(infile, line))
+                while (getline(infile, line))
                 {
                     arrFlights.push_back(line);
                 }
             }
             else
             {
-                while(getline(infile, line))
+                while (getline(infile, line))
                 {
                     depFlights.push_back(line);
                 }
@@ -65,30 +74,29 @@ public:
     string airportName;
 };
 
-class DB 
+class DB
 {
 public:
     vector<airport> arrAirports;
 };
 
-
-void LoadDB(DB& db)
+void LoadDB(DB &db)
 {
     filesystem::path directoryPath = filesystem::current_path() / "flightsDB";
 
-    for (const auto& dirEntry : std::filesystem::directory_iterator(directoryPath))
+    for (const auto &dirEntry : std::filesystem::directory_iterator(directoryPath))
     {
-        if (dirEntry.is_directory()) 
+        if (dirEntry.is_directory())
         {
             airport airport(dirEntry.path().stem().string());
 
-            for (const auto& file_entry : std::filesystem::directory_iterator(dirEntry.path())) 
+            for (const auto &file_entry : std::filesystem::directory_iterator(dirEntry.path()))
             {
-                if (file_entry.is_regular_file() && file_entry.path().extension() == ".arv") 
+                if (file_entry.is_regular_file() && file_entry.path().extension() == ".arv")
                 {
                     airport.getFile(file_entry.path().string(), true);
                 }
-                if (file_entry.is_regular_file() && file_entry.path().extension() == ".dpt") 
+                if (file_entry.is_regular_file() && file_entry.path().extension() == ".dpt")
                 {
                     airport.getFile(file_entry.path().string(), false);
                 }
@@ -99,9 +107,9 @@ void LoadDB(DB& db)
     }
 }
 
-airport* getAirport(DB& db, string airportName)
+airport *getAirport(DB &db, string airportName)
 {
-    for(airport& airport : db.arrAirports)
+    for (airport &airport : db.arrAirports)
     {
         if (airport.airportName == airportName)
         {
@@ -111,44 +119,16 @@ airport* getAirport(DB& db, string airportName)
     return nullptr;
 }
 
-string getColomFromFlight(string& flight, const char* colom)
+vector<string> splitFlightCsvStr(const string &flightStr)
 {
-    size_t colon_pos_1, colon_pos_2;
-    if (colom == "icao24")
+    vector<string> fields;
+    stringstream ss(flightStr);
+    string field;
+    while (getline(ss, field, ','))
     {
-        colon_pos_1 = 0;
-        colon_pos_2 = flight.find(',',1);    // index not occurence.
+        fields.push_back(field);
     }
-    else if(colom == "arrivalTime")
-    {
-        colon_pos_1 = flight.find(',',3);
-        colon_pos_2 = flight.find(',',4);
-    }
-    else if (colom == "depTime")
-    {
-        colon_pos_1 = flight.find(',',1);
-        colon_pos_2 = flight.find(',',2);
-    }
-    else if (colom == "callSing")
-    {
-        colon_pos_1 = flight.find(',',5);
-        colon_pos_2 = flight.find(',',6);
-    }
-    else if (colom == "arriveFrom")
-    {
-        colon_pos_1 = flight.find(',',2);
-        colon_pos_2 = flight.find(',',3);
-    }
-    else if (colom == "departureTo")
-    {
-        colon_pos_1 = flight.find(',',4);
-        colon_pos_2 = flight.find(',',5);
-    }
-    if(colon_pos_1 == 0)
-        return flight.substr(colon_pos_1, colon_pos_2-colon_pos_1-1); // Parse the column from the SVC row string
-    return flight.substr(colon_pos_1+1, colon_pos_2-colon_pos_1-1);
-
+    return fields;
 }
 
-
-#endif 
+#endif

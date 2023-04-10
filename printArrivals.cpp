@@ -1,8 +1,8 @@
 #include "utility.cpp"
 
-void printArrivals(DB& DB,char* airport_name);
+void printArrivals(DB& DB,const string airport_name);
 
-/*int main (int argc, char* argv[])
+int main (int argc, char* argv[])
 {
     DB DB;
     LoadDB(DB);
@@ -13,9 +13,9 @@ void printArrivals(DB& DB,char* airport_name);
     }
 
     return 0;
-}*/
+}
 
-void printArrivals(DB& DB,char* airport_name)
+void printArrivals(DB& DB,const string airport_name)
 {
     string airportName(airport_name);
     airport* airport = getAirport(DB,airportName);
@@ -23,6 +23,6 @@ void printArrivals(DB& DB,char* airport_name)
     for(int i = 0; i < airport->arrFlights.size(); i++)
     {
         cout << "flight #" << airport->arrFlights[i].icao24 << " arriving from " << airport->arrFlights[i].arriveFrom <<
-         ", tookoff at " << airport->arrFlights[i].depTime << " landed at" << airport->arrFlights[i].arrivalTime <<endl;
+         ", tookoff at " << airport->arrFlights[i].formatedDepTime << " landed at " << airport->arrFlights[i].formatedArrivalTime <<endl;
     }
 }
