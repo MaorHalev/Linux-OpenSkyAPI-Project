@@ -11,6 +11,7 @@ do
 dptUrl="https://opensky-network.org/api/flights/departure?airport=$airport&begin=$yesterday&end=$now";
 arvUrl="https://opensky-network.org/api/flights/arrival?airport=$airport&begin=$yesterday&end=$now";
 response=$(curl -s -o /dev/null -w "%{http_code}" $dptUrl)
+#we will check if page exists
 if [ $response == "200" ]; then
     mkdir "$airport"
 cd "$airport"

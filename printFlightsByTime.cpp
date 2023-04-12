@@ -1,6 +1,6 @@
 #include "utility.cpp"
 
-void printFlightsByTime(DB& DB,const string airport_name);
+void printFlightsByTime(DB& DB,const string& airport_name);
 bool compareArrivals(const flight& a, const flight& b) ;
 bool compareDepartures(const flight& a, const flight& b) ;
 
@@ -11,28 +11,19 @@ int main (int argc, char* argv[])
 
     for(int i = 1; i < argc; i++)
     {
-        printFlightsByTime(DB,argv[i]);
+        printFlightsByTime(DB,argv[i]);//go on all airports given
     }
-
     return 0;
 }
 
-void printFlightsByTime(DB& DB,const string airport_name)
+void printFlightsByTime(DB& DB,const string& airportName)
 {
-    string airportName(airport_name);
     airport* airport = getAirport(DB,airportName);
 
-    if(airport == NULL)
+    if(airport == NULL)///if airport not found
     {
         throw invalid_argument("No such airport in database");
     }
-
-    int i = 0;
-
-    vector<string> flights;
-    int numberOfFlights = airport->arrFlights.size() + airport->depFlights.size();
-
-    flights.reserve(numberOfFlights);
 
     // Sort the vector using the compare function
     sort(airport->arrFlights.begin(), airport->arrFlights.end(), compareArrivals);

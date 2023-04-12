@@ -17,24 +17,23 @@ class flight
 public:
     flight(string &flightStr)
     {
-        vector<string> flightParts = splitFlightCsvStr(flightStr);
+        vector<string> flightParts = splitFlightCsvStr(flightStr);//parse the csv
         this->flightStr = flightStr;
-        this->icao24 = flightParts[0];
-        this->callSing = flightParts[5];
-        this->depTimeEpoch = stoi(flightParts[1]);
-        this->arrivalTimeEpoch = stoi(flightParts[3]);
-        this->arriveFrom = flightParts[2];
-        this->departureTo = flightParts[4];
-
+        icao24 = flightParts[0];
+        callSign = flightParts[5];
+        depTimeEpoch = stoi(flightParts[1]);
+        arrivalTimeEpoch = stoi(flightParts[3]);
+        arriveFrom = flightParts[2];
+        departureTo = flightParts[4];
         time_t epoch = arrivalTimeEpoch;
         struct tm* timeinfo = localtime(&epoch);
-        strftime(formatedArrivalTime, 80,"%c", timeinfo);
+        strftime(formatedArrivalTime, 80,"%c", timeinfo);//get formatted time (bonus)
         epoch = depTimeEpoch;
         timeinfo = localtime(&epoch);
         strftime(formatedDepTime, 80,"%c", timeinfo);
     }
     string flightStr, arriveFrom, departureTo;
-    string icao24, callSing;
+    string icao24, callSign;
     char formatedArrivalTime[80],formatedDepTime[80];
     int depTimeEpoch, arrivalTimeEpoch;
 };
@@ -50,17 +49,17 @@ public:
     {
         string line;
         ifstream infile(path);
-        if (infile)
+        if (infile)//while not end of file
         {
             getline(infile, line); // skip first line - description.
-            if (isArrivals)
+            if (isArrivals)//if arrival flight
             {
                 while (getline(infile, line))
                 {
                     arrFlights.push_back(line);
                 }
             }
-            else
+            else//departure flight
             {
                 while (getline(infile, line))
                 {
@@ -82,15 +81,15 @@ public:
 
 void LoadDB(DB &db)
 {
-    filesystem::path directoryPath = filesystem::current_path() / "flightsDB";
+    filesystem::path directoryPath = filesystem::current_path() / "flightsDB";//get into the db folder
 
-    for (const auto &dirEntry : std::filesystem::directory_iterator(directoryPath))
+    for (const auto &dirEntry : std::filesystem::directory_iterator(directoryPath))//for each folder of airport
     {
         if (dirEntry.is_directory())
         {
-            airport airport(dirEntry.path().stem().string());
+            airport airport(dirEntry.path().stem().string());//create airport with the folder name
 
-            for (const auto &file_entry : std::filesystem::directory_iterator(dirEntry.path()))
+            for (const auto &file_entry : std::filesystem::directory_iterator(dirEntry.path()))//get into the arrivals and departure files and get the flights
             {
                 if (file_entry.is_regular_file() && file_entry.path().extension() == ".arv")
                 {
@@ -108,7 +107,7 @@ void LoadDB(DB &db)
 }
 
 airport *getAirport(DB &db, string airportName)
-{
+{//finds airport in the database
     for (airport &airport : db.arrAirports)
     {
         if (airport.airportName == airportName)
@@ -116,11 +115,11 @@ airport *getAirport(DB &db, string airportName)
             return &airport;
         }
     }
-    return nullptr;
+    return nullptr;//if not found return nullptr
 }
 
 vector<string> splitFlightCsvStr(const string &flightStr)
-{
+{//parses from csv to flight fields
     vector<string> fields;
     stringstream ss(flightStr);
     string field;
@@ -129,6 +128,19 @@ vector<string> splitFlightCsvStr(const string &flightStr)
         fields.push_back(field);
     }
     return fields;
+}
+
+
+void rerunScript(DB& database)
+{
+    //first we give the base name of the script
+    string script = "./lastFlightsScript.sh";
+
+    for(int i = 0; i < database.arrAirports.size(); i++)//concatenate inputs to string
+    {
+        script +=  " "  + database.arrAirports[i].airportName;
+    }
+    system(script.c_str());//run script
 }
 
 #endif
