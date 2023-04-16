@@ -1,4 +1,4 @@
-#include "utility.cpp"
+#include "utility.h"
 
 void printFlightsByAircraft(DB& DB,const string& aircraft);
 void printFlight(flight& flight);

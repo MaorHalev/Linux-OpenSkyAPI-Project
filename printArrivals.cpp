@@ -1,4 +1,4 @@
-#include "utility.cpp"
+#include "utility.h"
 
 void printArrivals(DB& DB,const string& airportName);
 

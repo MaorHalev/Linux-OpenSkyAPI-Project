@@ -1,4 +1,4 @@
-#include "utility.cpp"
+#include "utility.h"
 
 void printFlightsByTime(DB& DB,const string& airport_name);
 bool compareArrivals(const flight& a, const flight& b) ;

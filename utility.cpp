@@ -1,83 +1,51 @@
-#ifndef _UTILITYS_OS_LIB_
-#define _UTILITYS_OS_LIB_
+#include "utility.h"
 
-using namespace std;
-#include <iostream>
-#include <ctime>
-#include <filesystem>
-#include <string>
-#include <list>
-#include <fstream>
-#include <vector>
-#include <algorithm>
-
-vector<string> splitFlightCsvStr(const string &flightStr);
-class flight
+flight::flight(string &flightStr)
 {
-public:
-    flight(string &flightStr)
-    {
-        vector<string> flightParts = splitFlightCsvStr(flightStr);//parse the csv
-        this->flightStr = flightStr;
-        icao24 = flightParts[0];
-        callSign = flightParts[5];
-        depTimeEpoch = stoi(flightParts[1]);
-        arrivalTimeEpoch = stoi(flightParts[3]);
-        arriveFrom = flightParts[2];
-        departureTo = flightParts[4];
-        time_t epoch = arrivalTimeEpoch;
-        struct tm* timeinfo = localtime(&epoch);
-        strftime(formatedArrivalTime, 80,"%c", timeinfo);//get formatted time (bonus)
-        epoch = depTimeEpoch;
-        timeinfo = localtime(&epoch);
-        strftime(formatedDepTime, 80,"%c", timeinfo);
-    }
-    string flightStr, arriveFrom, departureTo;
-    string icao24, callSign;
-    char formatedArrivalTime[80],formatedDepTime[80];
-    int depTimeEpoch, arrivalTimeEpoch;
+    vector<string> flightParts = splitFlightCsvStr(flightStr);//parse the csv
+    this->flightStr = flightStr;
+    icao24 = flightParts[0];
+    callSign = flightParts[5];
+    depTimeEpoch = stoi(flightParts[1]);
+    arrivalTimeEpoch = stoi(flightParts[3]);
+    arriveFrom = flightParts[2];
+    departureTo = flightParts[4];
+    time_t epoch = arrivalTimeEpoch;
+    struct tm* timeinfo = localtime(&epoch);
+    strftime(formatedArrivalTime, 80,"%c", timeinfo);//get formatted time (bonus)
+    epoch = depTimeEpoch;
+    timeinfo = localtime(&epoch);
+    strftime(formatedDepTime, 80,"%c", timeinfo);
+}
+
+
+airport::airport(string airportName)
+{
+    this->airportName = airportName;
 };
-
-class airport
+void airport::getFile(string path, bool isArrivals)
 {
-public:
-    airport(string airportName)
+    string line;
+    ifstream infile(path);
+    if (infile)//while not end of file
     {
-        this->airportName = airportName;
-    };
-    void getFile(string path, bool isArrivals)
-    {
-        string line;
-        ifstream infile(path);
-        if (infile)//while not end of file
+        getline(infile, line); // skip first line - description.
+        if (isArrivals)//if arrival flight
         {
-            getline(infile, line); // skip first line - description.
-            if (isArrivals)//if arrival flight
+            while (getline(infile, line))
             {
-                while (getline(infile, line))
-                {
-                    arrFlights.push_back(line);
-                }
+                arrFlights.push_back(line);
             }
-            else//departure flight
+        }
+        else//departure flight
+        {
+            while (getline(infile, line))
             {
-                while (getline(infile, line))
-                {
-                    depFlights.push_back(line);
-                }
+                depFlights.push_back(line);
             }
         }
     }
-    vector<flight> arrFlights;
-    vector<flight> depFlights;
-    string airportName;
-};
-
-class DB
-{
-public:
-    vector<airport> arrAirports;
-};
+}
 
 void LoadDB(DB &db)
 {
@@ -130,7 +98,6 @@ vector<string> splitFlightCsvStr(const string &flightStr)
     return fields;
 }
 
-
 void rerunScript(DB& database)
 {
     //first we give the base name of the script
@@ -143,4 +110,3 @@ void rerunScript(DB& database)
     system(script.c_str());//run script
 }
 
-#endif

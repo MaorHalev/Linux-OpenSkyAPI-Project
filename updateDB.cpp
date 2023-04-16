@@ -1,4 +1,4 @@
-#include "utility.cpp"
+#include "utility.h"
 
 int main ()
 {
