@@ -20,9 +20,10 @@ void printFlightsByTime(DB& DB,const string& airportName)
 {
     airport* airport = getAirport(DB,airportName);
 
-    if(airport == NULL)///if airport not found
+    if(airport == NULL)
     {
-        throw invalid_argument("No such airport in database");
+        cout << "airport "+airportName+" not found\n";
+        return;
     }
 
     // Sort the vector using the compare function
@@ -57,6 +58,7 @@ void printFlightsByTime(DB& DB,const string& airportName)
         cout << "flight #" << it2->callSign << " departing to " << it2->departureTo << ", at " << it2->formatedDepTime  <<endl;
         ++it2;
     }
+        cout << endl;
 
 }
 

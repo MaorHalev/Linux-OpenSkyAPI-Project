@@ -4,18 +4,25 @@ Dor Edelman - 315315812
 
 About:
 This project is a set of command-line tools written in C++ that use the OpenSky API to retrieve and process information about
-flights in real-time. It consists of four individual programs:
-1.updateDB: Retrieves flight data from the OpenSky API and stores it in a local database.
+flights in real-time. It consists of four individual programs and a bash script that gathers the data from the OpenSky API:
+
+1.updateDB: Retrieves flight data from the OpenSky API updates the local database.
 This program is typically run periodically to keep the database up-to-date with the latest flight information.
+Does not take input and will only update airports which are already in the database.
+
 2.printArrivals: Prints a list of all flights that are currently arriving at a specified airport.
 The list includes the flight number, departure airport, scheduled and estimated arrival times.
+
 3.printFlightsByTime: Prints a list of all flights of an airport/s that are was given as an input - and are in the database,
-and sorted by their estimated time of arrival/departure - per airport.
+and sorts by their estimated time of arrival/departure.
+for each airport the list will be standalone, it will not mix the flights of diffrent airports.
 The list includes the flight number, departure and arrival airports, scheduled and estimated arrival/departure times.
-4.printFlightsByAircraft: Prints a list of all flights of an aircraft/s that are was given as an input - and are in the database,
-and sorted by their estimated time of arrival/departure.
+
+4.printFlightsByAircraft: Prints a list of all flights of an aircraft/s that are was given as an input - and are in the database.
 The list includes the flight number, departure and arrival airports, scheduled and estimated arrival/departure times.
+
 Each program can be executed independently, connected to the local database.
+
 A bash script is provided to automate the retrieval of data from the OpenSky API and store it in the local database.
 This project is designed for Linux environments.
 
@@ -47,6 +54,8 @@ Installing computer
 
 4.Open terminal in the directory containing the files and run the command : "make".
 
+5.Open terminal in the directory containing the files and run the command :"export LD_LIBRARY_PATH=."
+
 After steps 1-4 have been completed - you will have 4 .out files and 1 .so file.
 
 
@@ -63,3 +72,5 @@ Open terminal in the directory containing the files and run the command : "./las
 4.printFlightsByAircraft: to run this program simply type : the command : "./printFlightsByAircraft.out <aircraft icao24>" 
 - can have multiple aircraft icao24 codes seperated by a space.
 
+comments:
+*if you would like to remove outfiles , go to the terminal in directory containing the files and run the command : "make clean".

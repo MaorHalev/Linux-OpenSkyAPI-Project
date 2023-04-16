@@ -18,9 +18,16 @@ int main (int argc, char* argv[])
 void printArrivals(DB& DB,const string& airportName)
 {
     airport* airport = getAirport(DB,airportName);//get airport by name
+    if(airport == NULL)
+    {
+        cout << "airport "+airportName+" not found\n";
+        return;
+    }
     for(int i = 0; i < airport->arrFlights.size(); i++)//go on all the aiports flights and print them
     {
         cout << "flight #" << airport->arrFlights[i].callSign << " arriving from " << airport->arrFlights[i].arriveFrom <<
          ", tookoff at " << airport->arrFlights[i].formatedDepTime << " landed at " << airport->arrFlights[i].formatedArrivalTime <<endl;
     }
+        cout << endl;
+
 }

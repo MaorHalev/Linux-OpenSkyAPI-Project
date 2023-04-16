@@ -37,6 +37,8 @@ void printFlightsByAircraft(DB& DB,const string& aircraft)
             }
         }
     }
+        cout << endl;
+
 }
 
 void printFlight(flight& flight)//print flight of the aircraft
