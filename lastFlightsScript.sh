@@ -15,10 +15,10 @@ response=$(curl -s -o /dev/null -w "%{http_code}" $dptUrl)
 if [ $response == "200" ]; then
     mkdir "$airport"
 cd "$airport"
-curl -u "Halevi:0121596" -s $dptUrl | sed 's/,/\n/g' | awk -F: '{print $2 }' | sed -z 's/\n/,/g' | sed 's/}/\n/g' | sed 's/[][ \t"]//g' | sed 's/^[,]//g' > "$airport.dpt"
-curl -u "Halevi:0121596" -s $arvUrl | sed 's/,/\n/g' | awk -F: '{print $2 }' | sed -z 's/\n/,/g' | sed 's/}/\n/g' | sed 's/[][ \t"]//g' | sed 's/^[,]//g'  > "$airport.arv"
-echo "icao24,firstSeen,estDepartueAirport,lastSeen,estArrivalAirport,callsign,estDepartueAirportHorizDistance,estDepartureAirportVertDistance,estArrivalAirportHorizDistance,estArrivalAirportVertDistance,departueAirportCandidatesCount,arrivalAirportCandidatesCount" | cat - "$airport.dpt" > tmp && mv tmp "$airport.dpt"
-echo "icao24,firstSeen,estDepartueAirport,lastSeen,estArrivalAirport,callsign,estDepartueAirportHorizDistance,estDepartureAirportVertDistance,estArrivalAirportHorizDistance,estArrivalAirportVertDistance,departueAirportCandidatesCount,arrivalAirportCandidatesCount" | cat - "$airport.arv" > tmp && mv tmp "$airport.arv"
+curl -u "Halevi:0121596" -s $dptUrl | sed 's/,/\n/g' | awk -F: '{print $2 }' | sed -z 's/\n/,/g' | sed 's/}/\n/g' | sed 's/[][ \t"]//g' | sed 's/^[,]//g' | awk -F, '{print $1, $2, $3, $4, $5, $6}' | sed 's/ /,/g' > "$airport.dpt"
+curl -u "Halevi:0121596" -s $arvUrl | sed 's/,/\n/g' | awk -F: '{print $2 }' | sed -z 's/\n/,/g' | sed 's/}/\n/g' | sed 's/[][ \t"]//g' | sed 's/^[,]//g' | awk -F, '{print $1, $2, $3, $4, $5, $6}' | sed 's/ /,/g' > "$airport.arv"
+echo "icao24,firstSeen,estDepartueAirport,lastSeen,estArrivalAirport,callsign" | cat - "$airport.dpt" > tmp && mv tmp "$airport.dpt"
+echo "icao24,firstSeen,estDepartueAirport,lastSeen,estArrivalAirport,callsign" | cat - "$airport.arv" > tmp && mv tmp "$airport.arv"
 cd ..
 else
     echo "ICAO $airport does not exist";

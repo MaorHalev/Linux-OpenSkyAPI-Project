@@ -38,23 +38,23 @@ void printFlightsByTime(DB& DB,const string& airportName)
     {
         if (it1->arrivalTimeEpoch <= it2->depTimeEpoch) 
         {
-            cout << "flight #" << it1->icao24 << " arriving from " << it1->arriveFrom << ", at " << it1->formatedArrivalTime << endl;
+            cout << "flight #" << it1->callSign << " arriving from " << it1->arriveFrom << ", at " << it1->formatedArrivalTime << endl;
             ++it1;
         }
         else 
         {
-            cout << "flight #" << it2->icao24 << " departing to " << it2->departureTo << ", at " << it2->formatedDepTime <<endl;
+            cout << "flight #" << it2->callSign << " departing to " << it2->departureTo << ", at " << it2->formatedDepTime <<endl;
             ++it2;
         }
     }
     while (it1 != airport->arrFlights.end()) 
     {
-        cout << "flight #" << it1->icao24 << " arriving from " << it1->arriveFrom << ", at " << it1->formatedArrivalTime << endl;
+        cout << "flight #" << it1->callSign << " arriving from " << it1->arriveFrom << ", at " << it1->formatedArrivalTime << endl;
         ++it1;
     }
     while (it2 != airport->depFlights.end()) 
     {
-        cout << "flight #" << it2->icao24 << " departing to " << it2->departureTo << ", at " << it2->formatedDepTime  <<endl;
+        cout << "flight #" << it2->callSign << " departing to " << it2->departureTo << ", at " << it2->formatedDepTime  <<endl;
         ++it2;
     }
 
