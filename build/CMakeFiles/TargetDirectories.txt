@@ -1,0 +1,4 @@
+/home/dor/Desktop/openSkyLinux/Linux-OpenSkyAPI-Project/build/CMakeFiles/utility.dir
+/home/dor/Desktop/openSkyLinux/Linux-OpenSkyAPI-Project/build/CMakeFiles/opensky.dir
+/home/dor/Desktop/openSkyLinux/Linux-OpenSkyAPI-Project/build/CMakeFiles/edit_cache.dir
+/home/dor/Desktop/openSkyLinux/Linux-OpenSkyAPI-Project/build/CMakeFiles/rebuild_cache.dir
