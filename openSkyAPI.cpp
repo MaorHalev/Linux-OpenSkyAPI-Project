@@ -1,10 +1,18 @@
 #include "utility.h"
+#define EXIT 7
 
 int printMenu();
-vector<string> getAirports();
+int printInstructionsAndGetInput(vector<string> params);
+void getInput(vector<string>& params);
+void passInstructionsToChild(int opCode, const vector<string>& params, int pipefd[]);
+int getInstructionFromParent(int* pipefd,vector<string> params);
+vector<string> splitString(const string& str);
+void executeParentCommand(int opCode,vector<string> params,DB db);
 
 int main ()
 {
+    vector<string> params;
+    int opCode = 0;
     DB db;
     LoadDB(db);
     try
@@ -21,18 +29,26 @@ int main ()
             perror("fork");
             throw runtime_error("");
         }
-        while (true)
-        {
-            if(pid == 0)
-            {//running child process
-                vector<string> params;
-                int opCode = getInstructionFromParent(pipefd,params);
+
+        if(pid == 0)
+        {//running child process
+            close(pipefd[1]);  // Close the write end of the pipe
+            while(opCode != EXIT)
+            {
+                opCode = getInstructionFromParent(pipefd,params);
                 executeParentCommand(opCode,params,db);
             }
-            else
-            {//running parent process
-                getInput();
+            close(pipefd[0]);  // Close the read end of the pipe
+        }
+        else
+        {//running parent process
+            close(pipefd[0]);  // Close the read end of the pipe
+            while(opCode != EXIT)
+            {
+                opCode = printInstructionsAndGetInput(params);
+                passInstructionsToChild(opCode,params,pipefd);
             }
+            close(pipefd[1]);  // Close the write end of the pipe
         }
     }
     catch(const invalid_argument& e)
@@ -89,38 +105,68 @@ int printMenu()
     return number;
 }
 
-void getInput()
+int printInstructionsAndGetInput(vector<string> params)
 {
-    vector<string> airports;
     int choice = printMenu();
     switch(choice)
     {
         case 1:
-            airports = getAirports();
-            break;
         case 2:
+            cout << "Please enter the ICAO of needed airports." << endl;
+            getInput(params);
             break;
         case 3:
+            cout << "Please enter the aircraft names of needed aircrafts." << endl;
+            getInput(params);
             break;
         case 4:
+            cout << "Updating the existing airports in the DB." << endl;
             break;
         case 5:
+            cout << "Zipping the DB files." << endl;
             break;
         case 6:
+            //cout << "Child process PID is:" <<  
+            ////////////////////////////////getChildProcess pid from pipe
             break;
         case 7:
+            cout << "Gracefull exiting." << endl;
             break;
+    }
+    return choice;
+}
+
+void getInput(vector<string>& params) 
+{
+    string input;
+    getline(cin, input);
+
+    istringstream iss(input);
+    string token;
+    while (getline(iss, token, ' ')) 
+    {
+        params.push_back(token);
     }
 }
 
-vector<string> getAirports()
+void passInstructionsToChild(int opCode, const vector<string>& params, int pipefd[]) 
 {
+    string instruction = to_string(opCode);
+    for (const string& param : params) 
+    {
+        instruction += ' ' + param;
+    }
 
+    ssize_t bytesWritten = write(pipefd[1], instruction.c_str(), instruction.size());
+    if (bytesWritten == -1) 
+    {
+        perror("write");
+        throw runtime_error("");
+    }
 }
 
 int getInstructionFromParent(int* pipefd,vector<string> params)
 {
-    close(pipefd[1]);  // Close the write end of the pipe
     const int BUFFER_SIZE = 1024;
     char buffer[BUFFER_SIZE];
     ssize_t bytesRead = read(pipefd[0], buffer, BUFFER_SIZE);
@@ -129,7 +175,6 @@ int getInstructionFromParent(int* pipefd,vector<string> params)
         perror("read");
         throw runtime_error("");
     }
-    close(pipefd[0]);  // Close the read end of the pipe
     string message(buffer, bytesRead);
     params = splitString(message);
     return params.size();
@@ -182,27 +227,4 @@ void executeParentCommand(int opCode,vector<string> params,DB db)
             break;
     }
 }
-/*
-int main() 
-{
 
-
-
-    else 
-    {
-        // Parent process
-        close(pipefd[0]);  // Close the read end of the pipe
-
-        string message = "Hello from the parent process!";
-        ssize_t bytesWritten = write(pipefd[1], message.c_str(), message.size());
-        if (bytesWritten == -1) 
-        {
-            perror("write");
-            throw runtime_error("");
-        }
-
-        close(pipefd[1]);  // Close the write end of the pipe
-    }
-
-    return 0;
-}*/
