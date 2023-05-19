@@ -18,11 +18,11 @@ flight::flight(string &flightStr)
     strftime(formatedDepTime, 80,"%c", timeinfo);
 }
 
-
 airport::airport(string airportName)
 {
     this->airportName = airportName;
 };
+
 void airport::getFile(string path, bool isArrivals)
 {
     string line;
@@ -175,6 +175,8 @@ bool compareDepartures(const flight& a, const flight& b)
     return a.depTimeEpoch < b.depTimeEpoch;
 }
 
+
+
 void printAllFlightsByAircraft(DB& DB, vector<string>& aircrafts)
 {
     for(int i = 1; i < aircrafts.size(); i++)//for all aircrafts given
@@ -215,17 +217,21 @@ void printFlight(flight& flight)//print flight of the aircraft
     << " at " << flight.formatedArrivalTime << endl;
 }
 
+
+
 void updateDB(DB& DB)
 {
     LoadDB(DB);
     rerunScript(DB);//rerun script
 }
 
-void printAllArrivels(DB& DB)
+
+
+void printAllArrivels(DB& DB,vector<string>& params)
 {
-    for(int i = 1; i < DB.arrAirports.size(); i++)//for each airport, print all arrivals
+    for(int i = 1; i < params.size(); i++)//for each airport, print all arrivals
     {
-        printArrivals(DB,DB.arrAirports[i].airportName);
+        printArrivals(DB,params[i]);
     }
 }
 

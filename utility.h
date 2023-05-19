@@ -10,6 +10,8 @@ using namespace std;
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include <unistd.h>
+#include <string.h>
 
 class flight
 {
@@ -38,19 +40,19 @@ public:
 };
 
 void LoadDB(DB &db);
-
 airport *getAirport(DB &db, string airportName);
-
 vector<string> splitFlightCsvStr(const string &flightStr);
-
 void rerunScript(DB& database);
 
 void printArrivals(DB& DB,const string& airportName);
-void printAllArrivels(DB& DB);
+void printAllArrivels(DB& DB,vector<string>& params);
+
 void updateDB(DB& DB);
+
 void printFlightsByAircraft(DB& DB,const string& aircraft);
 void printFlight(flight& flight);
 void printAllFlightsByAircraft(DB& DB, vector<string>& aircrafts);
+
 void printFlightsByTime(DB& DB,const string& airport_name);
 bool compareArrivals(const flight& a, const flight& b) ;
 bool compareDepartures(const flight& a, const flight& b) ;
