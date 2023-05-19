@@ -45,4 +45,16 @@ vector<string> splitFlightCsvStr(const string &flightStr);
 
 void rerunScript(DB& database);
 
+void printArrivals(DB& DB,const string& airportName);
+void printAllArrivels(DB& DB);
+void updateDB(DB& DB);
+void printFlightsByAircraft(DB& DB,const string& aircraft);
+void printFlight(flight& flight);
+void printAllFlightsByAircraft(DB& DB, vector<string>& aircrafts);
+void printFlightsByTime(DB& DB,const string& airport_name);
+bool compareArrivals(const flight& a, const flight& b) ;
+bool compareDepartures(const flight& a, const flight& b) ;
+void printAllFlightsByTime(DB& DB, vector<string>& airports);
+
+
 #endif
