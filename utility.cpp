@@ -49,10 +49,8 @@ void airport::getFile(string path, bool isArrivals)
 
 void LoadDB(DB &db)
 {
-    filesystem::path directoryPath = filesystem::current_path() / "flightsDB";//get into the db folder
-    if (!std::filesystem::exists(directoryPath))
-        std::filesystem::create_directory(directoryPath);
-
+    filesystem::path directoryPath = filesystem::current_path().parent_path() / "flightsDB";//get into the db folder
+        
     for (const auto &dirEntry : std::filesystem::directory_iterator(directoryPath))//for each folder of airport
     {
         if (dirEntry.is_directory())
