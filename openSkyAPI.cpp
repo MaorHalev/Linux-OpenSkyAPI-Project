@@ -2,7 +2,7 @@
 #define EXIT 7
 
 int printMenu();
-int printInstructionsAndGetInput(vector<string> params);
+int printInstructionsAndGetInput(vector<string>& params);
 void getInput(vector<string>& params);
 void passInstructionsToChild(int opCode, const vector<string>& params, int pipefd[]);
 int getInstructionFromParent(int* pipefd,vector<string> params);
@@ -47,6 +47,8 @@ int main ()
             {
                 opCode = printInstructionsAndGetInput(params);
                 passInstructionsToChild(opCode,params,pipefd);
+                int status;
+                waitpid(pid, &status, 0);
             }
             close(pipefd[1]);  // Close the write end of the pipe
         }
@@ -65,14 +67,14 @@ int main ()
 
 int printMenu()
 {
-    const char* message = "Which method would you like to run?\n"
-                           "1.Update the database.\n "
-                           "2.Print flights by aircraft.\n"
-                           "3.Print flights by time\n"
-                           "4.Print arrivels of an airport.\n"
-                           "5.Zip the database files\n"
-                           "6.Print child proccess PID.\n"
-                           "7.Exit.\n";
+    const char* message =   "Which method would you like to run?\n"
+                            "1.Print arrivels of an airport.\n"
+                            "2.Print flights by time\n"
+                            "3.Print flights by aircraft.\n"
+                            "4.Update the database.\n "
+                            "5.Zip the database files\n"
+                            "6.Print child proccess PID.\n"
+                            "7.Exit.\n";
 
     ssize_t bytes_written = write(STDOUT_FILENO, message, strlen(message));
 
@@ -105,7 +107,7 @@ int printMenu()
     return number;
 }
 
-int printInstructionsAndGetInput(vector<string> params)
+int printInstructionsAndGetInput(vector<string>& params)
 {
     int choice = printMenu();
     switch(choice)
@@ -168,7 +170,10 @@ void passInstructionsToChild(int opCode, const vector<string>& params, int pipef
 int getInstructionFromParent(int* pipefd,vector<string> params)
 {
     const int BUFFER_SIZE = 1024;
+    int opCode;
     char buffer[BUFFER_SIZE];
+
+    //read parent pipe data
     ssize_t bytesRead = read(pipefd[0], buffer, BUFFER_SIZE);
     if (bytesRead == -1) 
     {
@@ -176,8 +181,13 @@ int getInstructionFromParent(int* pipefd,vector<string> params)
         throw runtime_error("");
     }
     string message(buffer, bytesRead);
-    params = splitString(message);
-    return params.size();
+
+    //get parameters from parent massege in a string vector format first place is opCode.
+    params = splitString(message);    
+    //get opCode and erase it from params   
+    opCode = stoi(params[0]);
+    params.erase(params.begin());
+    return opCode;
 }
 
 vector<string> splitString(const string& str) 
@@ -185,7 +195,7 @@ vector<string> splitString(const string& str)
     vector<string> substrings;
     size_t start = 0;
     size_t end = str.find(' ');
-
+    
     while (end != string::npos) 
     {
         std::string substring = str.substr(start, end - start);

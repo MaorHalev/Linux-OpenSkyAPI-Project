@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(OpenSkyAPI)
 
 # Set the C++ standard to use
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 
 # Create a build directory
@@ -11,7 +12,7 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 # Add the library target
-add_library(utility utility.cpp utility.h)
+add_library(utility SHARED utility.cpp utility.h)
 
 # Add the executable target
 add_executable(opensky openSkyAPI.cpp)
@@ -32,4 +33,3 @@ endif()
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_link_libraries(opensky PRIVATE stdc++fs)
 endif()
-
