@@ -2,7 +2,7 @@
 #define EXIT 7
 #define READ_END  0
 #define WRITE_END  1
-const int BUFFER_SIZE = 4096;
+const int BUFFER_SIZE = 100002;
 
 int printMenu();
 int printInstructionsAndGetInput(vector<string>& params);
@@ -11,25 +11,23 @@ void passInstructionsToChild(int opCode, const vector<string>& params, int pipef
 int getInstructionFromParent(int* pipefd,vector<string>& params);
 vector<string> splitString(const string& str);
 void executeParentCommand(int opCode,vector<string>& params,DB db);
-void cleanup(int* infd, int* outfd,int* errfd);
-void collectAndPrintResults(int* outfd,int* errfd);
+void cleanup(int* infd, int* outfd);
+void collectAndPrintResults(int* outfd);
 
 int main ()
 {
     int infd[2] = {0, 0};
     int outfd[2] = {0, 0};
-    int errfd[2] = {0, 0};
 
     vector<string> params;
     int opCode = 0;
     DB db;
     pid_t pid ;
     LoadDB(db);
-
     try
     {
         // Create the pipes
-        if (pipe(infd) == -1 || pipe(outfd) == -1 || pipe(errfd) == -1) {
+        if (pipe(infd) == -1 || pipe(outfd) == -1) {
             perror("pipe");
             throw runtime_error("");
         }
@@ -44,14 +42,11 @@ int main ()
 
         if (pid == 0)
         { // Child process
-            cout << "HI" << endl;
             dup2(infd[READ_END], STDIN_FILENO);
             dup2(outfd[WRITE_END], STDOUT_FILENO);
-            dup2(errfd[WRITE_END], STDERR_FILENO);
 
             close(infd[WRITE_END]); 	// Child does not write to stdin
             close(outfd[READ_END]); 	// Child does not read from stdout
-            close(errfd[READ_END]);		// Child does not read from stderr
 
             while (opCode != EXIT)
             {
@@ -63,32 +58,26 @@ int main ()
         {// Parent process
             close(infd[READ_END]); 	    // Parent does not read from stdin
             close(outfd[WRITE_END]);	// Parent does not write to stdout
-            close(errfd[WRITE_END]);	// Parent does not write to stderr
             // Write to parent-to-child pipe
             while (opCode != EXIT)
             {
                 opCode = printInstructionsAndGetInput(params);
                 passInstructionsToChild(opCode, params, infd);
-                collectAndPrintResults(outfd, errfd);
+                collectAndPrintResults(outfd);
             }
         }
     }
     catch(const invalid_argument& e)
     {//an exception that could not use errno.
-        if(pid == 0)
-        {
-            write(errfd[WRITE_END], e.what(), strlen(e.what()));
-        }
-        else
-        {
+
+
             cout << e.what() << endl;
-        }
     }
     catch(const exception& e)
     {
 
     }
-    cleanup(infd,outfd,errfd);
+    cleanup(infd,outfd);
     return 0;
 }
 
@@ -155,7 +144,7 @@ int printInstructionsAndGetInput(vector<string>& params)
             cout << "Zipping the DB files." << endl;
             break;
         case 6:
-            //cout << "Child process PID is:" <<  
+            cout << "Child process PID is: ";
             ////////////////////////////////getChildProcess pid from pipe
             break;
         case 7:
@@ -257,6 +246,7 @@ void executeParentCommand(int opCode,vector<string>& params,DB db)
             break;
         case 6:
             //return child proccess pid
+            cout << getpid();
             break;
         case 7:
             //zip & exit.
@@ -264,55 +254,26 @@ void executeParentCommand(int opCode,vector<string>& params,DB db)
     }
 }
 
-void cleanup(int* infd, int* outfd,int* errfd)
+void cleanup(int* infd, int* outfd)
 {
     close(infd[READ_END]);
     close(infd[WRITE_END]);
 
     close(outfd[READ_END]);
     close(outfd[WRITE_END]);
-
-    close(errfd[READ_END]);
-    close(errfd[WRITE_END]);
 }
 
-void collectAndPrintResults(int* outfd,int* errfd)
+void collectAndPrintResults(int* outfd)
 {
-    char errorbuffer[BUFFER_SIZE];
     char buffer[BUFFER_SIZE];
-    fd_set readSet;
-    FD_ZERO(&readSet);
-    FD_SET(errfd[READ_END], &readSet);
-    struct timeval timeout = {0, 0};
-
-    if(select(errfd[READ_END] + 1, &readSet, NULL, NULL, &timeout) != 0)
-    {// There are readable characters in the error pipe
-        ssize_t bytesRead = read(errfd[READ_END], errorbuffer, BUFFER_SIZE);
-        if (bytesRead == -1)
-        {
-            perror("read");
-            throw runtime_error("");
-        }
-        string errorMessage(errorbuffer, bytesRead);
-        throw runtime_error(errorMessage);
-    }
-
-    FD_ZERO(&readSet);
-    FD_SET(outfd[READ_END], &readSet);
-    string output;
     ssize_t bytesRead;
-    // Check if there is any readable data available
-    while (select(outfd[READ_END]+ 1, &readSet, NULL, NULL, &timeout) != 0)
-    {
-        bytesRead = read(outfd[READ_END], buffer, sizeof(buffer));
-        output.append(buffer, bytesRead);
-    }
-
+    bytesRead = read(outfd[READ_END], buffer, sizeof(buffer));
     if (bytesRead == -1)
     {
         perror("read");
         throw runtime_error("");
     }
+    string output(buffer,bytesRead);
     cout << output << endl;
 }
 

@@ -1,0 +1,2 @@
+/home/maor/Desktop/Linux-OpenSkyAPI-Project/cmake-build-debug/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/maor/Desktop/Linux-OpenSkyAPI-Project/cmake-build-debug/cmake-build-debug/CMakeFiles/rebuild_cache.dir
