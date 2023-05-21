@@ -1,67 +1,94 @@
 #include "utility.h"
 #define EXIT 7
+#define READ_END  0
+#define WRITE_END  1
+const int BUFFER_SIZE = 4096;
 
 int printMenu();
 int printInstructionsAndGetInput(vector<string>& params);
 void getInput(vector<string>& params);
 void passInstructionsToChild(int opCode, const vector<string>& params, int pipefd[]);
-int getInstructionFromParent(int* pipefd,vector<string> params);
+int getInstructionFromParent(int* pipefd,vector<string>& params);
 vector<string> splitString(const string& str);
-void executeParentCommand(int opCode,vector<string> params,DB db);
+void executeParentCommand(int opCode,vector<string>& params,DB db);
+void cleanup(int* infd, int* outfd,int* errfd);
+void collectAndPrintResults(int* outfd,int* errfd);
 
 int main ()
 {
+    int infd[2] = {0, 0};
+    int outfd[2] = {0, 0};
+    int errfd[2] = {0, 0};
+
     vector<string> params;
     int opCode = 0;
     DB db;
+    pid_t pid ;
     LoadDB(db);
+
     try
     {
-        int pipefd[2];
-        if (pipe(pipefd) == -1) 
-        {
+        // Create the pipes
+        if (pipe(infd) == -1 || pipe(outfd) == -1 || pipe(errfd) == -1) {
             perror("pipe");
             throw runtime_error("");
         }
-        pid_t pid = fork();
-        if (pid == -1) 
-        {
+
+        // Fork a child process
+        pid = fork();
+
+        if (pid < 0) {
             perror("fork");
-            throw runtime_error("");
+            throw runtime_error("fork error");
         }
 
-        if(pid == 0)
-        {//running child process
-            close(pipefd[1]);  // Close the write end of the pipe
-            while(opCode != EXIT)
+        if (pid == 0)
+        { // Child process
+            cout << "HI" << endl;
+            dup2(infd[READ_END], STDIN_FILENO);
+            dup2(outfd[WRITE_END], STDOUT_FILENO);
+            dup2(errfd[WRITE_END], STDERR_FILENO);
+
+            close(infd[WRITE_END]); 	// Child does not write to stdin
+            close(outfd[READ_END]); 	// Child does not read from stdout
+            close(errfd[READ_END]);		// Child does not read from stderr
+
+            while (opCode != EXIT)
             {
-                opCode = getInstructionFromParent(pipefd,params);
-                executeParentCommand(opCode,params,db);
+                opCode = getInstructionFromParent(infd, params);
+                executeParentCommand(opCode, params, db);
             }
-            close(pipefd[0]);  // Close the read end of the pipe
         }
         else
-        {//running parent process
-            close(pipefd[0]);  // Close the read end of the pipe
-            while(opCode != EXIT)
+        {// Parent process
+            close(infd[READ_END]); 	    // Parent does not read from stdin
+            close(outfd[WRITE_END]);	// Parent does not write to stdout
+            close(errfd[WRITE_END]);	// Parent does not write to stderr
+            // Write to parent-to-child pipe
+            while (opCode != EXIT)
             {
                 opCode = printInstructionsAndGetInput(params);
-                passInstructionsToChild(opCode,params,pipefd);
-                int status;
-                waitpid(pid, &status, 0);
+                passInstructionsToChild(opCode, params, infd);
+                collectAndPrintResults(outfd, errfd);
             }
-            close(pipefd[1]);  // Close the write end of the pipe
         }
     }
     catch(const invalid_argument& e)
-    {//an exception that couldnt use errno.  
-        write(STDOUT_FILENO, e.what(), strlen(e.what()));
+    {//an exception that could not use errno.
+        if(pid == 0)
+        {
+            write(errfd[WRITE_END], e.what(), strlen(e.what()));
+        }
+        else
+        {
+            cout << e.what() << endl;
+        }
     }
     catch(const exception& e)
     {
-        
+
     }
-    
+    cleanup(infd,outfd,errfd);
     return 0;
 }
 
@@ -159,7 +186,7 @@ void passInstructionsToChild(int opCode, const vector<string>& params, int pipef
         instruction += ' ' + param;
     }
 
-    ssize_t bytesWritten = write(pipefd[1], instruction.c_str(), instruction.size());
+    ssize_t bytesWritten = write(pipefd[WRITE_END], instruction.c_str(), instruction.size());
     if (bytesWritten == -1) 
     {
         perror("write");
@@ -167,9 +194,8 @@ void passInstructionsToChild(int opCode, const vector<string>& params, int pipef
     }
 }
 
-int getInstructionFromParent(int* pipefd,vector<string> params)
+int getInstructionFromParent(int* pipefd,vector<string>& params)
 {
-    const int BUFFER_SIZE = 1024;
     int opCode;
     char buffer[BUFFER_SIZE];
 
@@ -210,7 +236,7 @@ vector<string> splitString(const string& str)
     return substrings;
 }
 
-void executeParentCommand(int opCode,vector<string> params,DB db)
+void executeParentCommand(int opCode,vector<string>& params,DB db)
 {
     switch(opCode)
     {
@@ -236,5 +262,57 @@ void executeParentCommand(int opCode,vector<string> params,DB db)
             //zip & exit.
             break;
     }
+}
+
+void cleanup(int* infd, int* outfd,int* errfd)
+{
+    close(infd[READ_END]);
+    close(infd[WRITE_END]);
+
+    close(outfd[READ_END]);
+    close(outfd[WRITE_END]);
+
+    close(errfd[READ_END]);
+    close(errfd[WRITE_END]);
+}
+
+void collectAndPrintResults(int* outfd,int* errfd)
+{
+    char errorbuffer[BUFFER_SIZE];
+    char buffer[BUFFER_SIZE];
+    fd_set readSet;
+    FD_ZERO(&readSet);
+    FD_SET(errfd[READ_END], &readSet);
+    struct timeval timeout = {0, 0};
+
+    if(select(errfd[READ_END] + 1, &readSet, NULL, NULL, &timeout) != 0)
+    {// There are readable characters in the error pipe
+        ssize_t bytesRead = read(errfd[READ_END], errorbuffer, BUFFER_SIZE);
+        if (bytesRead == -1)
+        {
+            perror("read");
+            throw runtime_error("");
+        }
+        string errorMessage(errorbuffer, bytesRead);
+        throw runtime_error(errorMessage);
+    }
+
+    FD_ZERO(&readSet);
+    FD_SET(outfd[READ_END], &readSet);
+    string output;
+    ssize_t bytesRead;
+    // Check if there is any readable data available
+    while (select(outfd[READ_END]+ 1, &readSet, NULL, NULL, &timeout) != 0)
+    {
+        bytesRead = read(outfd[READ_END], buffer, sizeof(buffer));
+        output.append(buffer, bytesRead);
+    }
+
+    if (bytesRead == -1)
+    {
+        perror("read");
+        throw runtime_error("");
+    }
+    cout << output << endl;
 }
 

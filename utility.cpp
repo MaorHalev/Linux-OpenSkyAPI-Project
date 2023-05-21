@@ -101,8 +101,7 @@ vector<string> splitFlightCsvStr(const string &flightStr)
 void rerunScript(DB& database)
 {
     //first we give the base name of the script
-    string script = "./lastFlightsScript.sh";
-
+    string script = "../lastFlightsScript.sh";
     for(int i = 0; i < database.arrAirports.size(); i++)//concatenate inputs to string
     {
         script +=  " "  + database.arrAirports[i].airportName;
@@ -113,7 +112,7 @@ void rerunScript(DB& database)
 
 void printAllFlightsByTime(DB& DB, vector<string>& airports)
 {
-    for(int i = 1; i < airports.size(); i++)
+    for(int i = 0; i < airports.size(); i++)
     {
         printFlightsByTime(DB,airports[i]);//go on all airports given
     }
@@ -179,7 +178,7 @@ bool compareDepartures(const flight& a, const flight& b)
 
 void printAllFlightsByAircraft(DB& DB, vector<string>& aircrafts)
 {
-    for(int i = 1; i < aircrafts.size(); i++)//for all aircrafts given
+    for(int i = 0; i < aircrafts.size(); i++)//for all aircrafts given
     {
         printFlightsByAircraft(DB,aircrafts[i]);//print flighs of that aircraft
     }
@@ -217,19 +216,9 @@ void printFlight(flight& flight)//print flight of the aircraft
     << " at " << flight.formatedArrivalTime << endl;
 }
 
-
-
-void updateDB(DB& DB)
-{
-    LoadDB(DB);
-    rerunScript(DB);//rerun script
-}
-
-
-
 void printAllArrivels(DB& DB,vector<string>& params)
 {
-    for(int i = 1; i < params.size(); i++)//for each airport, print all arrivals
+    for(int i = 0; i < params.size(); i++)//for each airport, print all arrivals
     {
         printArrivals(DB,params[i]);
     }
@@ -248,7 +237,7 @@ void printArrivals(DB& DB,const string& airportName)
         cout << "flight #" << airport->arrFlights[i].callSign << " arriving from " << airport->arrFlights[i].arriveFrom <<
          ", tookoff at " << airport->arrFlights[i].formatedDepTime << " landed at " << airport->arrFlights[i].formatedArrivalTime <<endl;
     }
-        cout << endl;
+    cout << endl;
 
 }
 
