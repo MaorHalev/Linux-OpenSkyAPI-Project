@@ -1,4 +1,0 @@
-/snap/clion/237/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/snap/clion/237/bin/ninja/linux/x64/ninja -G Ninja -S /home/maor/Desktop/Linux-OpenSkyAPI-Project -B /home/maor/Desktop/Linux-OpenSkyAPI-Project/cmake-build-debug
--- Configuring done
--- Generating done
--- Build files have been written to: /home/maor/Desktop/Linux-OpenSkyAPI-Project/cmake-build-debug

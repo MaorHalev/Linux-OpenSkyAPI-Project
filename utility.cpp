@@ -21,7 +21,7 @@ flight::flight(string &flightStr)
 airport::airport(string airportName)
 {
     this->airportName = airportName;
-};
+}
 
 void airport::getFile(string path, bool isArrivals)
 {
@@ -49,7 +49,7 @@ void airport::getFile(string path, bool isArrivals)
 
 void LoadDB(DB &db)
 {
-    filesystem::path directoryPath = filesystem::current_path().parent_path() / "flightsDB";//get into the db folder
+    filesystem::path directoryPath = filesystem::current_path() / "flightsDB";//get into the db folder
         
     for (const auto &dirEntry : std::filesystem::directory_iterator(directoryPath))//for each folder of airport
     {
@@ -101,7 +101,7 @@ vector<string> splitFlightCsvStr(const string &flightStr)
 void rerunScript(DB& database)
 {
     //first we give the base name of the script
-    string script = "../lastFlightsScript.sh";
+    string script = "./lastFlightsScript.sh";
     for(int i = 0; i < database.arrAirports.size(); i++)//concatenate inputs to string
     {
         script +=  " "  + database.arrAirports[i].airportName;
@@ -209,8 +209,8 @@ void printFlightsByAircraft(DB& DB,const string& aircraft)
 
 }
 
-void printFlight(flight& flight)//print flight of the aircraft
-{
+void printFlight(flight& flight)
+{//print flight of the aircraft
     cout << flight.icao24 << " departed from " << flight.arriveFrom
     << " at " << flight.formatedDepTime << " arrived in "  << flight.departureTo 
     << " at " << flight.formatedArrivalTime << endl;

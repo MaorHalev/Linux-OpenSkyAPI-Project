@@ -12,9 +12,10 @@ using namespace std;
 #include <algorithm>
 #include <unistd.h>
 #include <string.h>
-#include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/select.h>
+#include <zip.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 class flight
 {
