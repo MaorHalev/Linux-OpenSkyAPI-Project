@@ -16,6 +16,7 @@ using namespace std;
 #include <zip.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 
 class flight
 {

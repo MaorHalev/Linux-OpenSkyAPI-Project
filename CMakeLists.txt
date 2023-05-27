@@ -24,6 +24,6 @@ set_target_properties(utility PROPERTIES
 target_include_directories(utility PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${LIBZIP_INCLUDE_DIRS})
 
 # Build the executable from openSkyApi.cpp and link against the shared library
-add_executable(openSkyAPI openSkyAPI.cpp)
+add_executable(openSkyAPI openSkyAPI.cpp processComunication.cpp processComunication.h)
 target_link_libraries(openSkyAPI PRIVATE utility ${LIBZIP_LIBRARIES})
 

@@ -17,7 +17,8 @@ void zipDB();
 static bool is_dir(const string& dir);
 static void walk_directory(const string& startdir, const string& inputdir, zip_t *zipper);
 static void zip_directory(const string& inputdir, const string& output_filename);
-void gracefullExit();
+void unzipDB();
+void gracefullExit(int pid);
 void handleSIGUSR1AndSIGINT(int signal);
 void handleSIGTERMParent(int signal);
 
@@ -37,7 +38,6 @@ int main ()
             perror("pipe");
             throw runtime_error("");
         }
-
         // Fork a child process
         pid = fork();
 
@@ -50,6 +50,7 @@ int main ()
         if (pid == 0)
         { // Child process
             DB db;
+            unzipDB();
             LoadDB(db);
             signal(SIGUSR1,handleSIGUSR1AndSIGINT);
             signal(SIGINT,handleSIGUSR1AndSIGINT);
@@ -203,7 +204,7 @@ void passInstructionsToChild(int opCode, vector<string>& params, int pipefd[])
 {
     if(opCode == 7)
     {
-        gracefullExit();
+        gracefullExit(pid);
     }
 
     string instruction = to_string(opCode);
@@ -251,7 +252,7 @@ vector<string> splitString(const string& str)
 
     while (end != string::npos)
     {
-        std::string substring = str.substr(start, end - start);
+        string substring = str.substr(start, end - start);
         substrings.push_back(substring);
         start = end + 1;
         end = str.find(' ', start);
@@ -290,7 +291,7 @@ void executeParentCommand(int opCode,vector<string>& params,DB& db)
     }
 }
 
-void gracefullExit()
+void gracefullExit(int pid)
 {
     // Send SIGUSR1 signal to the child process
     if (kill(pid, SIGUSR1) == -1)
@@ -301,6 +302,38 @@ void gracefullExit()
     int status;
     waitpid(pid, &status, 0);
     exit(0);
+}
+
+void cleanup(int* infd, int* outfd)
+{
+    close(infd[READ_END]);
+    close(infd[WRITE_END]);
+
+    close(outfd[READ_END]);
+    close(outfd[WRITE_END]);
+}
+
+void collectAndPrintResults(int* outfd)
+{
+    char buffer[BUFFER_SIZE];
+    ssize_t bytesRead;
+    string outputString;
+
+    while ((bytesRead = read(outfd[READ_END], buffer, BUFFER_SIZE)) > 0)
+    {
+        if (bytesRead == -1)
+        {
+            perror("read");
+            throw runtime_error("");
+        }
+        outputString += buffer;
+        // Check if the delimiter is received
+        if (buffer[bytesRead - 1] == DELIMITER)
+        {
+            break;
+        }
+    }
+    write(STDOUT_FILENO,outputString.c_str(),outputString.size());
 }
 
 void zipDB()
@@ -384,35 +417,62 @@ static void zip_directory(const string& inputdir, const string& output_filename)
     zip_close(zipper);
 }
 
-void cleanup(int* infd, int* outfd)
+void unzipDB()
 {
-    close(infd[READ_END]);
-    close(infd[WRITE_END]);
+    filesystem::path directoryPath = filesystem::current_path() / "flightsDB.zip";
+    const char *archive;
+    char *targetDir = "flightsDB";
+    struct zip *za;
+    struct zip_file *zf;
+    struct zip_stat sb;
+    char buf[BUFFER_SIZE];
+    int i, len,fd,err;
+    long long sum;
 
-    close(outfd[READ_END]);
-    close(outfd[WRITE_END]);
-}
+    archive = directoryPath.c_str();
+    if ((za = zip_open(archive, 0, &err)) == NULL)
+    {//fails to open flightsDB.zip file.
+        return;
+    }
 
-void collectAndPrintResults(int* outfd)
-{
-    char buffer[BUFFER_SIZE];
-    ssize_t bytesRead;
-    string outputString;
-
-    while ((bytesRead = read(outfd[READ_END], buffer, BUFFER_SIZE)) > 0)
+    for (i = 0; i < zip_get_num_entries(za, 0); i++)
     {
-        if (bytesRead == -1)
-        {
-            perror("read");
-            throw runtime_error("");
-        }
-        outputString += buffer;
-        // Check if the delimiter is received
-        if (buffer[bytesRead - 1] == DELIMITER)
-        {
-            break;
+        if (zip_stat_index(za, i, 0, &sb) == 0)
+        {//succeed retrieve information about the entry.
+            filesystem::path entryPath = filesystem::path(targetDir) / sb.name;
+            string entryPathStr = entryPath.string();
+            len = strlen(sb.name);
+            if (sb.name[len - 1] == '/')
+            {//is directory.
+                if (mkdir(entryPathStr.c_str(), 0755) < 0)
+                {//if mkdir failed
+                    if (errno != EEXIST)
+                    {
+                        perror(sb.name);
+                        exit(1);
+                    }
+                }
+            }
+            else
+            {//is a file that is not a directory
+                zf = zip_fopen_index(za, i, 0);
+                fd = open(entryPathStr.c_str(), O_RDWR | O_TRUNC | O_CREAT, 0777);
+                if (fd < 0)
+                {//unsuccessful opening the file
+                    zip_fclose(zf);
+                    throw runtime_error("Failed to open zipped file: " + entryPathStr);
+                }
+                sum = 0;
+                while (sum != sb.size)
+                {//read all the data from zipped file into the new file
+                    len = zip_fread(zf, buf, BUFFER_SIZE);
+                    write(fd, buf, len);
+                    sum += len;
+                }
+                close(fd);
+                zip_fclose(zf);
+            }
         }
     }
-    write(STDOUT_FILENO,outputString.c_str(),outputString.size());
+    zip_close(za);
 }
-
