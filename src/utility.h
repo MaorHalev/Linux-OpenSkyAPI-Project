@@ -18,6 +18,8 @@ using namespace std;
 #include <sys/stat.h>
 #include <fcntl.h>
 
+const int BUFFER_SIZE = 10000;
+
 class flight
 {
 public:
@@ -49,16 +51,10 @@ airport *getAirport(DB &db, string airportName);
 vector<string> splitFlightCsvStr(const string &flightStr);
 void rerunScript(DB& database);
 
-void printArrivals(DB& DB,const string& airportName);
-void printAllArrivels(DB& DB,vector<string>& params);
-
-void printFlightsByAircraft(DB& DB,const string& aircraft);
-void printFlight(flight& flight);
-void printAllFlightsByAircraft(DB& DB, vector<string>& aircrafts);
-
-void printFlightsByTime(DB& DB,const string& airport_name);
-bool compareArrivals(const flight& a, const flight& b) ;
-bool compareDepartures(const flight& a, const flight& b) ;
-void printAllFlightsByTime(DB& DB, vector<string>& airports);
+void zipDB();
+static bool is_dir(const string& dir);
+static void walk_directory(const string& startdir, const string& inputdir, zip_t *zipper);
+static void zip_directory(const string& inputdir, const string& output_filename);
+void unzipDB();
 
 #endif
