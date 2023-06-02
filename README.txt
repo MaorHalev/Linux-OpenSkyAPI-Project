@@ -43,7 +43,7 @@ Functionality:
 Prerequisites:
 1. A Linux environment: The program is designed to run on a Linux operating system.
 2. C++ compiler: You will need a C++ compiler to compile the source code.
-3. Required libraries: Ensure that you have the necessary libraries installed, including libzip , curl.
+3. Required libraries: Ensure that you have the necessary libraries installed, including libzip , curl, and pkg-config.
 4. Internet connectivity: The program requires internet connectivity to access the OpenSky API.
 
 Getting Started:
@@ -54,9 +54,11 @@ These instructions will help you get the program up and running on your local ma
    - On CentOS or Red Hat, run: `sudo yum groupinstall "Development Tools"`
    - Install any additional dependencies required by your project, such as libraries or headers.
 
-2. Install the necessary libraries for making HTTP requests:
+2. Install the necessary libraries:
    - Install libcurl on Ubuntu or Debian: `sudo apt-get install libcurl4-openssl-dev`
    - Install libcurl on CentOS or Red Hat: `sudo yum install libcurl-devel`
+   - Install libzip using : 'sudo apt install libzip-dev'
+   - Install pkg-config : 'sudo apt-get install pkg-config'
 
 3. Copy the project files to your computer.
 
