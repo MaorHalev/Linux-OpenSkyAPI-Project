@@ -18,6 +18,7 @@ using namespace std;
 #include <sys/stat.h>
 #include <fcntl.h>
 
+
 const int BUFFER_SIZE = 10000;
 
 class flight

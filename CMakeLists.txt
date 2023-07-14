@@ -15,9 +15,6 @@ set(UTILITY_SRCS src/utility.cpp src/utility.h)
 # Set processComunication source files
 set(PROCESS_COMMUNICATION_SRCS src/processComunication.cpp src/processComunication.h)
 
-# Set childProcessLogic source files
-set(CHILD_PROCESS_LOGIC_SRCS src/childProcessLogic.cpp src/childProcessLogic.h)
-
 # Create the shared library for utility
 add_library(utility SHARED ${UTILITY_SRCS})
 
@@ -28,7 +25,7 @@ set_target_properties(utility PROPERTIES OUTPUT_NAME "utility" VERSION 1.0 SOVER
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} utility processComunication)
 
 # Create the executable from openSkyAPI.cpp and processComunication.cpp
-add_executable(openSkyAPI.out src/openSkyAPI.cpp ${PROCESS_COMMUNICATION_SRCS} ${CHILD_PROCESS_LOGIC_SRCS})
+add_executable(openSkyAPI.out src/openSkyAPI.cpp ${PROCESS_COMMUNICATION_SRCS})
 
 # Link the executable against the utility shared library and libzip
 target_link_libraries(openSkyAPI.out utility ${LIBZIP_LIBRARIES})

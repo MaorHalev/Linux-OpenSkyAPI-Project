@@ -4,86 +4,58 @@ int printMenu();
 int printInstructionsAndGetInput(vector<string>& params);
 void getInput(vector<string>& params);
 
-pid_t pid;   //declare global var from process communication.
 int main ()
 {
-    int infd[2] = {0, 0};
-    int outfd[2] = {0, 0};
+    const char* instructionPipe = "instructionPipe";
+    const char* resultPipe = "resultPipe";
+
+    mkfifo(instructionPipe, 0777);
+    mkfifo(resultPipe, 0777);
+
+    if (access(instructionPipe, F_OK) == -1) {
+        perror("pipe");
+        throw runtime_error("");
+    }
+
+    int outfd = open(instructionPipe, O_WRONLY| O_NONBLOCK);
+    if(outfd == -1) //error while opening the pipe
+    {
+        perror("pipe");
+        throw runtime_error("");
+    }
+
+    int infd = open("/home/maor/Desktop/Linux-OpenSkyAPI-Project/resultPipe", O_RDONLY);
+    if(infd == -1) //error while opening the pipe
+    {
+        perror("pipe");
+        throw runtime_error("");
+    }
+
     vector<string> params;
     int opCode = WAIT_FOR_OPCODE;
     try
     {
-        // Create the pipes
-        if (pipe(infd) == -1 || pipe(outfd) == -1)
+        // Write to the named pipe
+        while (true)
         {
-            perror("pipe");
-            throw runtime_error("");
-        }
-        // Fork a child process
-        pid = fork();
-        if (pid < 0)
-        {
-            perror("fork");
-            throw runtime_error("fork error");
-        }
-        if (pid == 0)
-        { // Child process
-            DB db;
-            unzipDB();
-            LoadDB(db);
-            signal(SIGUSR1, handleChildSIGUSR1AndSIGINT);
-            signal(SIGINT, handleChildSIGUSR1AndSIGINT);
-
-            // Redirect cout to the ostringstream
-            ostringstream oss;
-            cout.rdbuf(oss.rdbuf());
-
-            close(infd[WRITE_END]); 	// Child does not write to stdin
-            close(outfd[READ_END]); 	// Child does not read from stdout
-
-            while (true)
+            while (opCode == WAIT_FOR_OPCODE)
             {
-                opCode = getInstructionFromParent(infd, params);
-                executeParentCommand(opCode, params, db);
-                string outputString = oss.str();  // Get the string from the ostringstream
-                outputString += DELIMITER;
-                write(outfd[WRITE_END], outputString.c_str(), outputString.size()); // Write the child outputString to the pipe
-                oss.str("");
+                opCode = printInstructionsAndGetInput(params);
             }
-        }
-        else
-        {// Parent process
-            signal(SIGINT, handleSIGINTParent);
-            close(infd[READ_END]); 	    // Parent does not read from stdin
-            close(outfd[WRITE_END]);	// Parent does not write to stdout
-            // Write to parent-to-child pipe
-            while (true)
-            {
-                while(opCode == WAIT_FOR_OPCODE)
-                {
-                    opCode = printInstructionsAndGetInput(params);
-                }
-                passInstructionsToChild(opCode, params, infd,outfd);
-                collectAndPrintResults(outfd);
-                opCode = WAIT_FOR_OPCODE;
-            }
-
+            passInstructionsToChild(opCode, params, outfd);
+            collectAndPrintResults(infd);
+            opCode = WAIT_FOR_OPCODE;
         }
     }
     catch(const exception& e)
     {
         cout << e.what() << endl;
     }
-    //we will get to this lock only if an exception has occurs - dealing with termination handing.
-    if (pid == 0)
-    {// Send SIGINT to the parent process
-        kill(getppid(), SIGINT);
-    }
-    else
-    {// Send SIGINT to the child process
-        kill(pid, SIGINT);
-    }
-    cleanup(infd,outfd);
+
+    //needs to handel child container logic
+
+    close(outfd);
+    close(infd);
     return 0;
 }
 
