@@ -1,5 +1,5 @@
-#ifndef OPENSKYAPI_CHILDPROCESSLOGIC_H
-#define OPENSKYAPI_CHILDPROCESSLOGIC_H
+#ifndef OPENSKYAPI_DBSERVICELOGIC_H
+#define OPENSKYAPI_DBSERVICELOGIC_H
 #include "utility.h"
 
 void printArrivals(DB& DB,const string& airportName);
@@ -15,4 +15,4 @@ bool compareDepartures(const flight& a, const flight& b) ;
 void printAllFlightsByTime(DB& DB, vector<string>& airports);
 
 
-#endif //OPENSKYAPI_CHILDPROCESSLOGIC_H
+#endif //OPENSKYAPI_DBSERVICELOGIC_H
