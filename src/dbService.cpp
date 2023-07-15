@@ -6,11 +6,11 @@ int main ()
     const char* instructionPipe = "instructionPipe";
     const char* resultPipe = "resultPipe";
 
-//    if (mkfifo(instructionPipe, 0777) || mkfifo(resultPipe, 0777))
-//    {
-//        perror("named pipe creation");
-//        throw runtime_error("");
-//    }
+   if (mkfifo(instructionPipe, 0777) || mkfifo(resultPipe, 0777))
+   {
+       perror("named pipe creation");
+       throw runtime_error("");
+   }
 
     int infd = open(instructionPipe, O_RDONLY);
     int outfd = open(resultPipe, O_WRONLY);

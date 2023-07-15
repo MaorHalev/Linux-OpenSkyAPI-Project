@@ -9,14 +9,9 @@ int main ()
     const char* instructionPipe = "instructionPipe";
     const char* resultPipe = "resultPipe";
 
-    if (mkfifo(instructionPipe, 0777) || mkfifo(resultPipe, 0777))
-    {
-        perror("named pipe creation");
-        throw runtime_error("");
-    }
-
-    int infd = open(resultPipe, O_RDONLY);
     int outfd = open(instructionPipe, O_WRONLY);
+    int infd = open(resultPipe, O_RDONLY);
+
 
     if(outfd == -1 || infd == -1) //error while opening the pipe
     {

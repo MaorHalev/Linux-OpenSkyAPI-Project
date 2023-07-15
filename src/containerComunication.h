@@ -1,6 +1,6 @@
 #ifndef OPENSKYAPI_CONTAINERCOMUNICATION_H
 #define OPENSKYAPI_CONTAINERCOMUNICATION_H
-#include "src/dbServiceLogic.h"
+#include "dbServiceLogic.h"
 
 #define DELIMITER '\0'
 
