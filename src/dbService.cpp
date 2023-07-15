@@ -1,5 +1,6 @@
 #include "containerComunication.h"
 #define WAIT_FOR_OPCODE -2
+#define SHUTDOWN 6
 
 int main ()
 {
@@ -36,6 +37,10 @@ int main ()
         while (true)
         {
             opCode = getInstructionFromParent(infd, params);
+            if (opCode == SHUTDOWN)
+            {
+                break;
+            }
             executeParentCommand(opCode, params, db);
             string outputString = oss.str();  // Get the string from the ostringstream
             outputString += DELIMITER;
@@ -50,7 +55,10 @@ int main ()
 
     //needs to handel container logic shut down
 
+    zipDB();
     close(outfd);
     close(infd);
+    unlink(instructionPipe);
+    unlink(resultPipe);
     return 0;
 }

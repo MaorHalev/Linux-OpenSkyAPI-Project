@@ -1,5 +1,6 @@
 #include "containerComunication.h"
 #define WAIT_FOR_OPCODE -2
+#define SHUTDOWN 6
 int printMenu();
 int printInstructionsAndGetInput(vector<string>& params);
 void getInput(vector<string>& params);
@@ -31,6 +32,10 @@ int main ()
                 opCode = printInstructionsAndGetInput(params);
             }
             passInstructionsToChild(opCode, params, outfd);
+            if (opCode == SHUTDOWN)
+            {
+                break;
+            }
             collectAndPrintResults(infd);
             opCode = WAIT_FOR_OPCODE;
         }
@@ -55,8 +60,7 @@ int printMenu()
                             "3.Print flights by aircraft.\n"
                             "4.Update the database.\n"
                             "5.Zip the database files\n"
-                            "6.Print child proccess PID.\n"
-                            "7.Exit.\n";
+                            "6.Shutdown.\n";
     ssize_t bytes_written = write(STDOUT_FILENO, message, strlen(message));
 
     if (bytes_written == -1)
@@ -97,15 +101,14 @@ int printInstructionsAndGetInput(vector<string>& params)
             getInput(params);
             break;
         case 4:
-            cout << "Updating the existing airports in the DB." << endl;
+            cout << "Please enter the ICAO of needed airports." << endl;
+            getInput(params);
             break;
         case 5:
             cout << "Zipping the DB files." << endl;
             break;
         case 6:
-            break;
-        case 7:
-            cout << "Gracefull exiting." << endl;
+            cout << "Shutting Down." << endl;
             break;
         default:
             write(STDOUT_FILENO, "Invalid opcode - please enter again.\n", 38);

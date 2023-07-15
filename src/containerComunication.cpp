@@ -73,7 +73,7 @@ void executeParentCommand(int opCode,vector<string>& params,DB& db)
             printAllFlightsByAircraft(db,params);
             break;
         case 4:
-            rerunScript(db);
+            rerunScript(params);
             LoadDB(db);
             break;
         case 5:

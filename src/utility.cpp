@@ -103,13 +103,13 @@ vector<string> splitFlightCsvStr(const string &flightStr)
     return fields;
 }
 
-void rerunScript(DB& database)
+void rerunScript(vector<string>& params)
 {
     //first we give the base name of the script
     string script = "./lastFlightsScript.sh";
-    for(int i = 0; i < database.arrAirports.size(); i++)//concatenate inputs to string
+    for(int i = 0; i < params.size(); i++)//concatenate inputs to string
     {
-        script +=  " "  + database.arrAirports[i].airportName;
+        script +=  " "  + params[i];
     }
     system(script.c_str());//run script
 }

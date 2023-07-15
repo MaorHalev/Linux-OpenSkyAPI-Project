@@ -49,7 +49,7 @@ public:
 void LoadDB(DB &db);
 airport *getAirport(DB &db, string airportName);
 vector<string> splitFlightCsvStr(const string &flightStr);
-void rerunScript(DB& database);
+void rerunScript(vector<string>& params);
 
 void zipDB();
 static bool is_dir(const string& dir);
