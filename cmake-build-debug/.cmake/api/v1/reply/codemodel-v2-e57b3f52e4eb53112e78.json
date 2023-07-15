@@ -1,0 +1,78 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "openSkyAPI",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "dbService.out::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-dbService.out-Debug-c1ab7827e09dc2f4a8ce.json",
+					"name" : "dbService.out",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "flightService.out::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-flightService.out-Debug-3f3c84c86ca8fa4e3c47.json",
+					"name" : "flightService.out",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "utility::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-utility-Debug-444014ad8fdc8d3a5631.json",
+					"name" : "utility",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/maor/Desktop/Linux-OpenSkyAPI-Project/cmake-build-debug",
+		"source" : "/home/maor/Desktop/Linux-OpenSkyAPI-Project"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}
