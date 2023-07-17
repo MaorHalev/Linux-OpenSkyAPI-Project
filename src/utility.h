@@ -17,6 +17,7 @@ using namespace std;
 #include <dirent.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <set>
 
 const int BUFFER_SIZE = 10000;
 

@@ -7,23 +7,22 @@ void getInput(vector<string>& params);
 
 int main ()
 {
-    const char* instructionPipe = "instructionPipe";
-    const char* resultPipe = "resultPipe";
-
-    int outfd = open(instructionPipe, O_WRONLY);
-    int infd = open(resultPipe, O_RDONLY);
-
-
-    if(outfd == -1 || infd == -1) //error while opening the pipe
-    {
-        perror("pipe");
-        throw runtime_error("");
-    }
-
-    vector<string> params;
-    int opCode = WAIT_FOR_OPCODE;
+    const char* instructionPipe = "/tmp/flights_pipe/instructionPipe";
+    const char* resultPipe = "/tmp/flights_pipe/resultPipe";
+    int outfd, infd;
     try
     {
+        int outfd = open(instructionPipe, O_WRONLY);
+        int infd = open(resultPipe, O_RDONLY);
+
+        if(outfd == -1 || infd == -1) //error while opening the pipe
+        {
+            perror("pipe");
+            throw runtime_error("");
+        }
+
+        vector<string> params;
+        int opCode = WAIT_FOR_OPCODE;
         // Write to the named pipe
         while (true)
         {
@@ -42,6 +41,7 @@ int main ()
     }
     catch(const exception& e)
     {
+        perror("");
         cout << e.what() << endl;
     }
 
@@ -58,7 +58,7 @@ int printMenu()
                             "1.Print arrivels of an airport.\n"
                             "2.Print flights by time\n"
                             "3.Print flights by aircraft.\n"
-                            "4.Update the database.\n"
+                            "4.Fetch airport data.\n"
                             "5.Zip the database files\n"
                             "6.Shutdown.\n";
     ssize_t bytes_written = write(STDOUT_FILENO, message, strlen(message));

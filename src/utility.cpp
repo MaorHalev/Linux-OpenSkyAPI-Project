@@ -1,3 +1,4 @@
+
 #include "utility.h"
 
 flight::flight(string &flightStr)
@@ -49,20 +50,26 @@ void airport::getFile(string path, bool isArrivals)
 
 void LoadDB(DB &db)
 {
-    filesystem::path directoryPath = filesystem::current_path() / "flightsDB";//get into the db folder
+    filesystem::path directoryPath = filesystem::current_path() / "flightsDB"; // Get into the db folder
 
     if (!filesystem::exists(directoryPath))
     {
-        throw runtime_error("Please run script first to create a database.");
+        throw runtime_error("Please run the script first to create a database.");
     }
 
-    for (const auto &dirEntry : std::filesystem::directory_iterator(directoryPath))//for each folder of airport
+    // Step 1: Create a temporary set to store the existing airports
+    set<string> existingAirports;
+
+    for (const auto &dirEntry : std::filesystem::directory_iterator(directoryPath)) // For each folder of airport
     {
         if (dirEntry.is_directory())
         {
-            airport airport(dirEntry.path().stem().string());//create airport with the folder name
+            // Step 2: Store the name of the airport in the set
+            existingAirports.insert(dirEntry.path().stem().string());
 
-            for (const auto &file_entry : std::filesystem::directory_iterator(dirEntry.path()))//get into the arrivals and departure files and get the flights
+            airport airport(dirEntry.path().stem().string()); // Create airport with the folder name
+
+            for (const auto &file_entry : std::filesystem::directory_iterator(dirEntry.path())) // Get into the arrivals and departure files and get the flights
             {
                 if (file_entry.is_regular_file() && file_entry.path().extension() == ".arv")
                 {
@@ -75,6 +82,20 @@ void LoadDB(DB &db)
             }
 
             db.arrAirports.push_back(airport);
+        }
+    }
+
+    // Step 3: Remove airports from db that no longer exist in the directory
+    auto it = db.arrAirports.begin();
+    while (it != db.arrAirports.end())
+    {
+        if (existingAirports.find(it->airportName) == existingAirports.end())
+        {
+            it = db.arrAirports.erase(it);
+        }
+        else
+        {
+            ++it;
         }
     }
 }
