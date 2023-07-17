@@ -12,8 +12,8 @@ int main ()
     int outfd, infd;
     try
     {
-        int outfd = open(instructionPipe, O_WRONLY);
-        int infd = open(resultPipe, O_RDONLY);
+        outfd = open(instructionPipe, O_WRONLY);
+        infd = open(resultPipe, O_RDONLY);
 
         if(outfd == -1 || infd == -1) //error while opening the pipe
         {
@@ -31,11 +31,29 @@ int main ()
                 opCode = printInstructionsAndGetInput(params);
             }
             passInstructionsToChild(opCode, params, outfd);
+            if(errno == EPIPE)
+            {
+                errno = 0;
+                opCode = WAIT_FOR_OPCODE;
+                continue;
+            }
+            if (opCode == SHUTDOWN && errno == EPIPE)
+            {//if db service is down and needs to shut down.
+                unlink(instructionPipe);
+                unlink(resultPipe);
+                break;
+            }
             if (opCode == SHUTDOWN)
             {
                 break;
             }
             collectAndPrintResults(infd);
+            if(errno == EPIPE)
+            {
+                errno = 0;
+                opCode = WAIT_FOR_OPCODE;
+                continue;
+            }
             opCode = WAIT_FOR_OPCODE;
         }
     }

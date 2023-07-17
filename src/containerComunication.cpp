@@ -11,8 +11,15 @@ void passInstructionsToChild(int opCode, vector<string>& params,int outfd)
     ssize_t bytesWritten = write(outfd, instruction.c_str(), instruction.size());
     if (bytesWritten == -1)
     {//if faild to write to the pipe
-        perror("write");
-        throw runtime_error("");
+        if(errno == EPIPE)
+        {
+            cout << "No one is listening on the other side of the pipe , returning to menu until the service will resume." << endl;
+        }
+        else
+        {
+            perror("write");
+            throw runtime_error("");
+        }
     }
     params.clear();
 }
@@ -26,8 +33,17 @@ int getInstructionFromParent(int infd,vector<string>& params)
     ssize_t bytesRead = read(infd, buffer, BUFFER_SIZE);
     if (bytesRead == -1)
     {
+        if(errno == EPIPE)
+        {
+            return 0;
+        }
         perror("read");
         throw runtime_error("");
+    }
+    if (bytesRead == 0)
+    {
+        errno = EPIPE;
+        return 0;
     }
     string message(buffer, bytesRead);
 
@@ -80,7 +96,6 @@ void executeParentCommand(int opCode,vector<string>& params,DB& db)
             zipDB();
             break;
         case 6:
-            cout << "need to implement shut down " << endl;
             break;
         default://there was a problem in the pipe - parent checks this condition before.
             throw runtime_error("Child got an unwanted operation code.");
@@ -97,10 +112,19 @@ void collectAndPrintResults(int infd)
     while ((bytesRead = read(infd, buffer, BUFFER_SIZE-1)) > 0)
     {
         if (bytesRead == -1)
-        {
-            perror("read");
-            throw runtime_error("");
+        {//if faild to write to the pipe
+            if(errno == EPIPE)
+            {
+                cout << "No one is listening on the other side of the pipe , returning to menu until the service will resume." << endl;
+                return;
+            }
+            else
+            {
+                perror("write");
+                throw runtime_error("");
+            }
         }
+
         outputString += buffer;
         // Check if the delimiter is received
         if (buffer[bytesRead - 1] == DELIMITER)
@@ -108,7 +132,15 @@ void collectAndPrintResults(int infd)
             break;
         }
     }
+
+
+
     write(STDOUT_FILENO,outputString.c_str(),outputString.size());
+    if(outputString == "")
+    {
+        cout << "No one is listening on the other side of the pipe , returning to menu until the service will resume." << endl;
+        return;
+    }
 }
 
 

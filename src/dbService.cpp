@@ -16,8 +16,8 @@ int main ()
            throw runtime_error("");
        }
 
-        int infd = open(instructionPipe, O_RDONLY);
-        int outfd = open(resultPipe, O_WRONLY);
+        infd = open(instructionPipe, O_RDONLY);
+        outfd = open(resultPipe, O_WRONLY);
         if(outfd == -1 || infd == -1) //error while opening the pipe
         {
             perror("pipe");
@@ -42,15 +42,32 @@ int main ()
             {
                 break;
             }
+            if (errno == EPIPE)
+            {
+                errno = 0;
+                close(infd);
+                infd = open(instructionPipe, O_RDONLY);
+                oss.str("");
+                continue;
+            }
             executeParentCommand(opCode, params, db);
             string outputString = oss.str();  // Get the string from the ostringstream
             outputString += DELIMITER;
             int writeBytes = write(outfd, outputString.c_str(), outputString.size()); // Write the child outputString to the pipe
-            if (writeBytes == -1 && errno != EPIPE)
+            if (errno == EPIPE)
+            {
+                errno = 0;
+                close(outfd);
+                outfd = open(resultPipe, O_WRONLY);
+                oss.str("");
+                continue;
+            }
+            if (writeBytes == -1)
             {
                 perror("");
                 throw runtime_error("");
             }
+
             oss.str("");
         }
     }
@@ -64,8 +81,6 @@ int main ()
         unlink(instructionPipe);
         unlink(resultPipe);
     }
-
-    //needs to handel container logic shut down
 
     zipDB();
     close(outfd);
