@@ -37,6 +37,7 @@ int main ()
 
         while (true)
         {
+            perror("try before pipe read");
             opCode = getInstructionFromParent(infd, params);
             if (opCode == SHUTDOWN)
             {
@@ -47,7 +48,6 @@ int main ()
                 errno = 0;
                 close(infd);
                 infd = open(instructionPipe, O_RDONLY);
-                oss.str("");
                 continue;
             }
             executeParentCommand(opCode, params, db);
@@ -59,7 +59,6 @@ int main ()
                 errno = 0;
                 close(outfd);
                 outfd = open(resultPipe, O_WRONLY);
-                oss.str("");
                 continue;
             }
             if (writeBytes == -1)
@@ -82,10 +81,10 @@ int main ()
         unlink(resultPipe);
     }
 
-    zipDB();
-    close(outfd);
-    close(infd);
-    unlink(instructionPipe);
-    unlink(resultPipe);
+//    zipDB();
+//    close(outfd);
+//    close(infd);
+//    unlink(instructionPipe);
+//    unlink(resultPipe);
     return 0;
 }

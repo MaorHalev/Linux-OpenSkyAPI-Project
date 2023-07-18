@@ -31,6 +31,7 @@ int getInstructionFromParent(int infd,vector<string>& params)
 
     //read parent pipe data
     ssize_t bytesRead = read(infd, buffer, BUFFER_SIZE);
+    perror("try after pipe read");
     if (bytesRead == -1)
     {
         if(errno == EPIPE)
