@@ -1,5 +1,6 @@
 #include "containerComunication.h"
 
+
 void passInstructionsToChild(int opCode, vector<string>& params,int outfd)
 {
     string instruction = to_string(opCode);
@@ -9,10 +10,14 @@ void passInstructionsToChild(int opCode, vector<string>& params,int outfd)
     }
 
     ssize_t bytesWritten = write(outfd, instruction.c_str(), instruction.size());
-    if (bytesWritten == -1)
+    if (bytesWritten == -1 && errno != EPIPE)
     {//if faild to write to the pipe
         perror("write");
         throw runtime_error("");
+    }
+    else if ((bytesWritten == -1 && errno == EPIPE) || bytesWritten == 0)
+    {
+        cout << "No one is listening on the other side of the pipe , returning to menu until the service will resume." << endl;
     }
     params.clear();
 }
@@ -24,10 +29,14 @@ int getInstructionFromParent(int infd,vector<string>& params)
 
     //read parent pipe data
     ssize_t bytesRead = read(infd, buffer, BUFFER_SIZE);
-    if (bytesRead == -1)
+    if (bytesRead == -1 && errno != EPIPE)
     {
         perror("read");
         throw runtime_error("");
+    }
+    else if ((bytesRead == -1 && errno == EPIPE) || bytesRead == 0)
+    {
+        return WAIT_FOR_OPCODE;
     }
     string message(buffer, bytesRead);
 
@@ -96,10 +105,15 @@ void collectAndPrintResults(int infd)
 
     while ((bytesRead = read(infd, buffer, BUFFER_SIZE-1)) > 0)
     {
-        if (bytesRead == -1)
+        if (bytesRead == -1 && errno != EPIPE)
         {
             perror("read");
             throw runtime_error("");
+        }
+        else if (bytesRead == -1 && errno == EPIPE)
+        {
+            cout << "No one is listening on the other side of the pipe , returning to menu until the service will resume." << endl;
+            return;
         }
         outputString += buffer;
         // Check if the delimiter is received
@@ -108,6 +122,7 @@ void collectAndPrintResults(int infd)
             break;
         }
     }
+
     write(STDOUT_FILENO,outputString.c_str(),outputString.size());
 }
 

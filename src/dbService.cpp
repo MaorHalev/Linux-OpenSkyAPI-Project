@@ -1,12 +1,11 @@
 #include "containerComunication.h"
-#define WAIT_FOR_OPCODE -2
-#define SHUTDOWN 6
-
 int main ()
 {
     const char* instructionPipe = "/tmp/flights_pipe/instructionPipe";
     const char* resultPipe = "/tmp/flights_pipe/resultPipe";
     int infd , outfd;
+    // Store the original stream buffer of cout
+    streambuf* originalCoutBuffer = cout.rdbuf();
 
     try
     {
@@ -42,11 +41,25 @@ int main ()
             {
                 break;
             }
+            else if (opCode == WAIT_FOR_OPCODE)
+            {
+                close(infd);
+                infd = open(instructionPipe, O_RDONLY);
+                oss.str("");
+                continue;
+            }
             executeParentCommand(opCode, params, db);
             string outputString = oss.str();  // Get the string from the ostringstream
             outputString += DELIMITER;
             int writeBytes = write(outfd, outputString.c_str(), outputString.size()); // Write the child outputString to the pipe
-            if (writeBytes == -1 && errno != EPIPE)
+            if ((writeBytes == -1 && errno == EPIPE) || writeBytes == 0)
+            {
+                close(outfd);
+                outfd = open(resultPipe, O_WRONLY);
+                oss.str("");
+                continue;
+            }
+            else if (writeBytes == -1)
             {
                 perror("");
                 throw runtime_error("");
@@ -58,15 +71,10 @@ int main ()
     {
         perror("");
         cout << e.what() << endl;
-        zipDB();
-        close(outfd);
-        close(infd);
-        unlink(instructionPipe);
-        unlink(resultPipe);
     }
 
-    //needs to handel container logic shut down
-
+    // Restore cout back to stdout by setting its original buffer
+    cout.rdbuf(originalCoutBuffer);
     zipDB();
     close(outfd);
     close(infd);

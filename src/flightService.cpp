@@ -31,11 +31,23 @@ int main ()
                 opCode = printInstructionsAndGetInput(params);
             }
             passInstructionsToChild(opCode, params, outfd);
+            if(errno == EPIPE)
+            {
+                errno = 0;
+                opCode = WAIT_FOR_OPCODE;
+                continue;
+            }
             if (opCode == SHUTDOWN)
             {
                 break;
             }
             collectAndPrintResults(infd);
+            if(errno == EPIPE)
+            {
+                errno = 0;
+                opCode = WAIT_FOR_OPCODE;
+                continue;
+            }
             opCode = WAIT_FOR_OPCODE;
         }
     }
@@ -44,8 +56,6 @@ int main ()
         perror("");
         cout << e.what() << endl;
     }
-
-    //needs to handel container logic shut down
 
     close(outfd);
     close(infd);

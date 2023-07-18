@@ -1,7 +1,8 @@
 #ifndef OPENSKYAPI_CONTAINERCOMUNICATION_H
 #define OPENSKYAPI_CONTAINERCOMUNICATION_H
 #include "dbServiceLogic.h"
-
+#define WAIT_FOR_OPCODE -2
+#define SHUTDOWN 6
 #define DELIMITER '\0'
 
 void passInstructionsToChild(int opCode, vector<string>& params,int outfd);

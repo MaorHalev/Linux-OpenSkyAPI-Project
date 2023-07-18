@@ -33,14 +33,14 @@ void airport::getFile(string path, bool isArrivals)
         getline(infile, line); // skip first line - description.
         if (isArrivals)//if arrival flight
         {
-            while (getline(infile, line))
+            while (infile && getline(infile, line))
             {
                 arrFlights.push_back(line);
             }
         }
         else//departure flight
         {
-            while (getline(infile, line))
+            while (infile && getline(infile, line))
             {
                 depFlights.push_back(line);
             }
@@ -57,14 +57,12 @@ void LoadDB(DB &db)
         throw runtime_error("Please run the script first to create a database.");
     }
 
-    // Step 1: Create a temporary set to store the existing airports
     set<string> existingAirports;
 
     for (const auto &dirEntry : std::filesystem::directory_iterator(directoryPath)) // For each folder of airport
     {
         if (dirEntry.is_directory())
         {
-            // Step 2: Store the name of the airport in the set
             existingAirports.insert(dirEntry.path().stem().string());
 
             airport airport(dirEntry.path().stem().string()); // Create airport with the folder name
@@ -85,7 +83,6 @@ void LoadDB(DB &db)
         }
     }
 
-    // Step 3: Remove airports from db that no longer exist in the directory
     auto it = db.arrAirports.begin();
     while (it != db.arrAirports.end())
     {
